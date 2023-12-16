@@ -39,9 +39,10 @@ class TweetLike(ValCommonModel):
 
     def __init__(self, **data):
         # Extrae el usuario y guarda únicamente sus ID's.
-        user = User(**data.pop("user"))
-        data[USER_ID] = user.user_id
-        data[USERNAME] = user.username
+        if "user" in data:
+            user = User(**data.pop("user"))
+            data[USER_ID] = user.user_id
+            data[USERNAME] = user.username
         super().__init__(**data)
 
 
@@ -55,6 +56,9 @@ class Tweets(BaseModel):
     results: List[Tweet]
     continuation_token: str
 
+    def __len__(self) -> int:
+        return len(self.results)
+
     def __getitem__(self, idx: int) -> Tweet:
         return self.results[idx]
 
@@ -62,3 +66,8 @@ class Tweets(BaseModel):
         if not reverse:
             return (tweet for tweet in reversed(self.results))
         return (tweet for tweet in self.results)
+
+class TweetsContinuation(BaseModel):
+    user_id: str
+    username: str
+    continuation_token: str
