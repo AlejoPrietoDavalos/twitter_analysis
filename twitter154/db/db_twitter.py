@@ -1,30 +1,37 @@
-from abc import ABC
+from typing import List
 
-from pymongo import MongoClient
 from pymongo.database import Database
 from pymongo.collection import Collection
 
+from twitter154.db.base import DBMongoBase, HOST_DEFAULT
 
-class DBMongoBase(ABC):
-    def __init__(self, db_name: str, host="mongodb://localhost:27017/"):
-        self.__client = MongoClient(host)
-        self.__db: Database = self.__client[db_name]
+
+class DBTwitterColl:
+    def __init__(self, db: Database):
+        self.__user: Collection = db["user"]
+        self.__tweet: Collection = db["tweet"]
+        self.__tweets_continuation: Collection = db["tweets_continuation"]
+
+    @property
+    def user(self) -> Collection:
+        return self.__user
     
     @property
-    def client(self) -> MongoClient:
-        return self.__client
-
+    def tweet(self) -> Collection:
+        return self.__tweet
+    
     @property
-    def db(self) -> Database:
-        return self.__db
-
-    def __getitem__(self, key: str) -> Collection:
-        """ Retorna la colección."""
-        return self.db[key]
+    def tweets_continuation(self) -> Collection:
+        return self.__tweets_continuation
 
 
 class DBTwitter(DBMongoBase):
-    pass
-#    @property
+    def __init__(self, db_name: str, host=HOST_DEFAULT):
+        super().__init__(db_name=db_name, host=host)
+        self.__coll = DBTwitterColl(db = self.db)
+
+    @property
+    def coll(self) -> DBTwitterColl:
+        return self.__coll
 
 
