@@ -2,6 +2,9 @@ from datetime import datetime
 
 from twitter154.models.common import ValCommonModel
 
+USER_ID = "user_id"
+USERNAME = "username"
+
 class User(ValCommonModel):
     creation_date: datetime
     user_id: str

@@ -3,7 +3,7 @@ from datetime import datetime
 
 from pydantic import BaseModel
 
-from twitter154.models.user import User
+from twitter154.models.user import User, USER_ID, USERNAME
 from twitter154.models.common import ValCommonModel
 from twitter154.models.quoted import QuotedStatus
 from twitter154.models.media import ExtendedEntities
@@ -14,7 +14,9 @@ class TweetLike(ValCommonModel):
     text: str
     media_url: List[str] | None
     video_url: None         # TODO: -> Testear. No hay caso de uso.
-    user: User
+    user_id: str
+    username: str
+    ############### user: User
     language: str
     favorite_count: int
     retweet_count: int
@@ -34,6 +36,14 @@ class TweetLike(ValCommonModel):
     quoted_status: QuotedStatus | None
     bookmark_count: int
     source: str
+
+    def __init__(self, **data):
+        # Extrae el usuario y guarda únicamente sus ID's.
+        user = User(**data.pop("user"))
+        data[USER_ID] = user.user_id
+        data[USERNAME] = user.username
+        super().__init__(**data)
+
 
 class ReTweet(TweetLike):
     retweet_status: None | TweetLike
