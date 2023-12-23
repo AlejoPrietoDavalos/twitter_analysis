@@ -1,2 +1,0 @@
-GET = "get"
-POST = "post"
