@@ -18,6 +18,7 @@ class Headers(ABC):
 
 
 class ReqArgs(BaseModel, ABC):
+    """ It must contain only the elements necessary to make the requests."""
     method: Literal["GET", "POST"] = "GET"
 
     @abstractclassmethod
@@ -41,18 +42,20 @@ class ReqArgs(BaseModel, ABC):
         return header_cls.get_header(bot_scraper)
 
     def response_dump(self) -> dict:
+        """ FIXME: Hardcoding."""
         model_dump_ = super().model_dump()
         model_dump_["url"] = self.url()
         return model_dump_
 
     def model_dump(self) -> dict:
-        model_dump_ = super().model_dump()
+        """ FIXME: Hardcoding."""
+        model_dump_ = self.response_dump()
         model_dump_["endpoint_name"] = self.endpoint_name()
-        model_dump_["url"] = self.url()
         return model_dump_
 
 
 class BotScraper(BaseModel):
+    """ Main object with which requests are made."""
     acc_name: str = Field(frozen=True)
     credential: str = Field(frozen=True, repr=False)
 
