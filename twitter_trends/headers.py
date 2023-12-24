@@ -1,4 +1,4 @@
-from scraping_kit.bot_scraper import Headers, BotScraper
+from scraping_kit import Headers, BotScraper
 
 class HeaderTwitterTrends(Headers):
     @classmethod

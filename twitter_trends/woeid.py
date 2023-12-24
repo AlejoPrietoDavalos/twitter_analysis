@@ -1,3 +1,5 @@
+""" https://blog.twitter.com/engineering/en_us/a/2010/woeids-in-twitters-trends."""
+
 class WOEIDCountry:
     algeria = "23424740"                    # Algeria
     argentina = "23424747"                  # Argentina
