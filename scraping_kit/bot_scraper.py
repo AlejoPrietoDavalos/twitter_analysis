@@ -60,7 +60,7 @@ class BotScraper(BaseModel):
     credential: str = Field(frozen=True, repr=False)
 
     @classmethod
-    def load_bots(path_acc: Path) -> List[BotScraper]:
+    def load_bots(cls, path_acc: Path) -> List[BotScraper]:
         with open(path_acc) as f:
             return [BotScraper(**acc_json) for acc_json in json.load(f)]
     

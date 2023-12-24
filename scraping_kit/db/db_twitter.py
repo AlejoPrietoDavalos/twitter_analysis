@@ -10,6 +10,7 @@ from scraping_kit.bot_scraper import BotScraper
 
 class DBTwitterColl:
     def __init__(self, db: Database):
+        self.cache: Collection = db.get_collection("cache")
         self.raw: Collection = db.get_collection("raw")
         self.user: Collection = db.get_collection("user")
         self.user_suspended: Collection = db.get_collection("user_suspended")
