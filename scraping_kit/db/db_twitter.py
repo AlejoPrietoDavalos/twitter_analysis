@@ -5,7 +5,7 @@ from pymongo.database import Database
 from pymongo.collection import Collection
 
 from scraping_kit.db.base import DBMongoBase, HOST_DEFAULT
-from scraping_kit.bot_scraper import load_bots, BotScraper
+from scraping_kit.bot_scraper import BotScraper
 
 
 class DBTwitterColl:
