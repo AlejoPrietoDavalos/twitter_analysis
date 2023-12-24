@@ -1,10 +1,10 @@
-import os
-from dotenv import load_dotenv
-load_dotenv()
+from scraping_kit.bot_scraper import Headers, BotScraper
 
-def get_headers() -> None:
-    return {
-        "content-type": "application/x-www-form-urlencoded",
-        "X-RapidAPI-Key": os.getenv("X-RapidAPI-Key_2"),
-        "X-RapidAPI-Host": "twitter-trends5.p.rapidapi.com"
-    }
+class HeaderTwitterTrends(Headers):
+    @classmethod
+    def get_header(cls, bot_scraper: BotScraper) -> dict:
+        return {
+            "content-type": "application/x-www-form-urlencoded",
+            "X-RapidAPI-Key": bot_scraper.credential,
+            "X-RapidAPI-Host": "twitter-trends5.p.rapidapi.com"
+        }
