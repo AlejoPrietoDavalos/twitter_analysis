@@ -56,12 +56,13 @@ class BotScraper(BaseModel):
     acc_name: str = Field(frozen=True)
     credential: str = Field(frozen=True, repr=False)
 
+    @classmethod
+    def load_bots(path_acc: Path) -> List[BotScraper]:
+        with open(path_acc) as f:
+            return [BotScraper(**acc_json) for acc_json in json.load(f)]
+    
     def get_response(self, req_args: Type[ReqArgs]) -> Tuple[Response, datetime]:
         response = requests.request(**req_args.response_dump(), headers=req_args.get_header(self))
         date_now = datetime.now()
         return response, date_now
 
-    @classmethod
-    def load_bots(path_acc: Path) -> List[BotScraper]:
-        with open(path_acc) as f:
-            return [BotScraper(**acc_json) for acc_json in json.load(f)]
