@@ -1,11 +1,11 @@
 from __future__ import annotations
 from datetime import datetime, timezone
-from scraping_kit.db.models.raw import RawData
-
-from pydantic import BaseModel, field_validator
 from typing import List
-import pandas as pd
 
+import pandas as pd
+from pydantic import BaseModel, field_validator
+
+from scraping_kit.db.models.raw import RawData
 
 
 class TrendCreatedAt(BaseModel):

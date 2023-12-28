@@ -6,7 +6,7 @@ import json
 import requests
 from requests import Response
 from datetime import datetime
-from abc import ABC, abstractclassmethod, abstractmethod
+from abc import ABC, abstractclassmethod
 
 from pydantic import BaseModel, Field
 

@@ -1,9 +1,8 @@
 from typing import Type
-from pydantic import BaseModel, ConfigDict
 from datetime import datetime, timezone
 
-from pydantic import BaseModel, field_validator
-from scraping_kit.bot_scraper import ReqArgs
+from pydantic import BaseModel, ConfigDict, field_validator
+
 
 class ValCommonModel(BaseModel):
     creation_date: datetime
