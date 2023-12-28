@@ -55,6 +55,7 @@ class DBTwitter(DBMongoBase):
         
         self.path_data = path_data
         self.path_reports_folder = self.path_data / "reports"
+        self.path_backup_db = self.path_data / "backup_db"
         self.path_acc = self.path_data / "acc.json"
         self.__init_db()
 
@@ -83,4 +84,5 @@ class DBTwitter(DBMongoBase):
     def __init_db(self) -> None:
         self.path_data.mkdir(exist_ok=True)
         self.path_reports_folder.mkdir(exist_ok=True)
+        self.path_backup_db.mkdir(exist_ok=True)
     
