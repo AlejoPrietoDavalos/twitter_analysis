@@ -25,7 +25,9 @@ def requests_and_process(db_tw: DBTwitter, req_args: ArgsTwitterTrends, bot: Bot
     if trends is not None:
         _d = trends.created
         msg = f"You already have a Trends on the date: "
-        msg += f"{_d.year}-{_d.month}-{_d.day} {_d.hour}:{_d.minute}:{_d.second}"
+        year, month, day = str(_d.year).zfill(4), str(_d.month).zfill(2), str(_d.day).zfill(2)
+        hour, minute, second = str(_d.hour).zfill(2), str(_d.minute).zfill(2), str(_d.second).zfill(2)
+        msg += f"{year}-{month}-{day} {hour}:{minute}:{second}"
         print(msg)
         print("You don't need to download again.")
         return None
