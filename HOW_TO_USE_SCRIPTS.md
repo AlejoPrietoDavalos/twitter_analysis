@@ -7,4 +7,4 @@
 - `trends_per_day.ipynb:` To see the `Trends` of a `single day`.
 
 ### Backup DB (Do frequently, after a download)
-- Open a `backup_db.ipynb`
+- Open a `backup_db.ipynb` and execute.
