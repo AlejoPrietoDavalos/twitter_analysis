@@ -1,9 +1,9 @@
-import os
-from dotenv import load_dotenv
-load_dotenv()
+from scraping_kit import Headers, BotScraper
 
-def get_headers() -> None:
-    return {
-        "X-RapidAPI-Key": os.getenv("X-RapidAPI-Key"),
+class HeaderTwitter45(Headers):
+    @classmethod
+    def get_header(cls, bot_scraper: BotScraper) -> dict:
+        return {
+        "X-RapidAPI-Key": bot_scraper.credential,
         "X-RapidAPI-Host": "twitter-api45.p.rapidapi.com"
     }

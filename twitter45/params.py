@@ -1,14 +1,24 @@
-from pydantic import BaseModel, ConfigDict
+from typing import Type
 
-from scraping_kit.responser import ReqArgs
+from pydantic import BaseModel
 
-#--------------------User Timeline--------------------
+from scraping_kit import ReqArgs, Headers
+from twitter45.headers import HeaderTwitter45
+
+
+class BaseReqArgsTwitter45(ReqArgs):
+    @classmethod
+    def header_cls(cls) -> Type[Headers]:
+        return HeaderTwitter45
+
+
+#----------------------------------------User Timeline----------------------------------------
 class ParamsUserTimeline(BaseModel):
     screenname: str
     cursor: str = ""
 
 
-class UserTimeline(ReqArgs):
+class ArgsUserTimeline(BaseReqArgsTwitter45):
     """ This endpoint gets lates user's tweets by it's screenname."""
     params: ParamsUserTimeline
     
@@ -19,114 +29,114 @@ class UserTimeline(ReqArgs):
     @classmethod
     def url(cls) -> str:
         return "https://twitter-api45.p.rapidapi.com/timeline.php"
-#--------------------User Timeline--------------------
+#-------------------------------------User Timeline-------------------------------------
 
 
 
 '''
-#--------------------Retweets--------------------
+#-------------------------------------Retweets-------------------------------------
 #Get the list of of users who retweeted the tweet.
     @property
     def url(self) -> str:
         return "https://twitter-api45.p.rapidapi.com/retweets.php"
-#--------------------Retweets--------------------
+#-------------------------------------Retweets-------------------------------------
 
 
-#--------------------Favorites--------------------
+#-------------------------------------Favorites-------------------------------------
 #Get the list of users who liked the tweet.
     @property
     def url(self) -> str:
         return "https://twitter-api45.p.rapidapi.com/favorites.php"
-#--------------------Favorites--------------------
+#-------------------------------------Favorites-------------------------------------
 
 
-#--------------------User info--------------------
+#-------------------------------------User info-------------------------------------
 #Using this method you can get information about user by the screenname.
     @property
     def url(self) -> str:
         return "https://twitter-api45.p.rapidapi.com/screenname.php"
-#--------------------User info--------------------
+#-------------------------------------User info-------------------------------------
 
 
-#--------------------Tweet info--------------------
+#-------------------------------------Tweet info-------------------------------------
 #With this endpoint you can get tweet info by it's id.
     @property
     def url(self) -> str:
         return "https://twitter-api45.p.rapidapi.com/tweet.php"
-#--------------------Tweet info--------------------
+#-------------------------------------Tweet info-------------------------------------
 
 
-#--------------------Following--------------------
+#-------------------------------------Following-------------------------------------
 #Get the list of accounts user is following.
     @property
     def url(self) -> str:
         return "https://twitter-api45.p.rapidapi.com/following.php"
-#--------------------Following--------------------
+#-------------------------------------Following-------------------------------------
 
 
-#--------------------Followers--------------------
+#-------------------------------------Followers-------------------------------------
 #Get latest user's followers list
     @property
     def url(self) -> str:
         return "https://twitter-api45.p.rapidapi.com/followers.php"
-#--------------------Followers--------------------
+#-------------------------------------Followers-------------------------------------
 
 
-#--------------------Search--------------------
+#-------------------------------------Search-------------------------------------
 #Returns a search results for the specified query in Twitter search.
     @property
     def url(self) -> str:
         return "https://twitter-api45.p.rapidapi.com/search.php"
-#--------------------Search--------------------
+#-------------------------------------Search-------------------------------------
 
 
-#--------------------Check Retweet--------------------
+#-------------------------------------Check Retweet-------------------------------------
 #This endpoint get latest tweets of the user and checks if there is a retweet of the needed tweet.
 #WARNING: might not be suitable for old retweets.
     @property
     def url(self) -> str:
         return "https://twitter-api45.p.rapidapi.com/checkretweet.php"
-#--------------------Check Retweet--------------------
+#-------------------------------------Check Retweet-------------------------------------
 
 
-#--------------------Check follow--------------------
+#-------------------------------------Check follow-------------------------------------
 #This endpoint get latest subscriptins of the user and latest followers for the target account. And checks if user follows the needed account.
 #WARNING: might not be suitable for big accounts or old subscriptions.
     @property
     def url(self) -> str:
         return "https://twitter-api45.p.rapidapi.com/checkfollow.php"
-#--------------------Check follow--------------------
+#-------------------------------------Check follow-------------------------------------
 
 
-#--------------------List timeline--------------------
+#-------------------------------------List timeline-------------------------------------
 #With this endpoint you can get the timeline of the lists on Twitter.
     @property
     def url(self) -> str:
         return "https://twitter-api45.p.rapidapi.com/listtimeline.php"
-#--------------------List timeline--------------------
+#-------------------------------------List timeline-------------------------------------
 
 
-#--------------------User's likes--------------------
+#-------------------------------------User's likes-------------------------------------
 #With this endpoint you can get user's latest likes.
     @property
     def url(self) -> str:
         return "https://twitter-api45.p.rapidapi.com/userlikes.php"
-#--------------------User's likes--------------------
+#-------------------------------------User's likes-------------------------------------
 
 
-#--------------------User replies--------------------
+#-------------------------------------User replies-------------------------------------
 #Gets user's replies on twitter.
     @property
     def url(self) -> str:
         return "https://twitter-api45.p.rapidapi.com/replies.php"
-#--------------------User replies--------------------
+#-------------------------------------User replies-------------------------------------
 
 
-#--------------------Check Like--------------------
+#-------------------------------------Check Like-------------------------------------
 #This endpoint get latest like of the user and checks if there is a like of the needed tweet.
 #WARNING: might not be suitable for the old likes.
     @property
     def url(self) -> str:
         return "https://twitter-api45.p.rapidapi.com/checklike.php"
-#--------------------Check Like--------------------
+#-------------------------------------Check Like-------------------------------------
 '''
