@@ -1,3 +1,4 @@
 from twitter_trends.headers import HeaderTwitterTrends
 from twitter_trends.params import ArgsTwitterTrends, ParamsTwitterTrends
 from twitter_trends.woeid import WOEIDCountry
+from twitter_trends.functional import requests_and_process
