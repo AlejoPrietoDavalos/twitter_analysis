@@ -72,8 +72,6 @@ class BotScraper(BaseModel):
         return response, creation_date
 
 
-T_BotChoiced = Tuple[int, BotScraper]
-
 class BotList(BaseModel):
     bots: List[BotScraper]
 
@@ -89,9 +87,9 @@ class BotList(BaseModel):
             bots = [BotScraper(**acc_json) for acc_json in json.load(f)]
         return cls(bots=bots)
 
-    def random_bot(self) -> T_BotChoiced:
+    def random_bot(self) -> Tuple[int, BotScraper]:
         idx = random.randint(0, len(self.bots) - 1)
         return idx, self.bots[idx]
 
-    def iter_random_bot(self, n_iters: int) -> Generator[T_BotChoiced, None, None]:
+    def iter_random_bot(self, n_iters: int) -> Generator[Tuple[int, BotScraper], None, None]:
         return (self.random_bot() for _ in range(n_iters))
