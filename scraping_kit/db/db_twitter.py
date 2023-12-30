@@ -1,5 +1,6 @@
-from typing import Type, Dict
-from datetime import datetime, timedelta
+from __future__ import annotations
+from typing import Type, Dict, List
+from datetime import datetime
 from pathlib import Path
 from requests import Response
 
@@ -13,7 +14,24 @@ from scraping_kit.db.base import DBMongoBase, HOST_DEFAULT
 from scraping_kit.bot_scraper import BotScraper, ReqArgs, BotList
 from scraping_kit.db.models.raw import RawData
 from scraping_kit.db.models.trends import Trends
-from scraping_kit.utils import iter_dates_delta_n_days_back
+from scraping_kit.utils import iter_dates_delta_n_days_back, date_one_day
+
+
+def format_yyyy_mm_dd(year: int, month: int, day: int) -> str:
+    year, month, day = str(year).zfill(4), str(month).zfill(2), str(day).zfill(2)
+    return f"{year}_{month}_{day}"
+
+def format_date_yyyy_mm_dd(date: datetime) -> str:
+    return format_yyyy_mm_dd(date.year, date.month, date.day)
+
+def _get_accumulated_name(date_from: datetime, date_to: datetime) -> str:
+    accumulated_name = "trends_"
+    accumulated_name += f"from_{format_date_yyyy_mm_dd(date_from)}_"
+    accumulated_name += f"to_{format_date_yyyy_mm_dd(date_to)}.csv"
+    return accumulated_name
+
+def _get_per_day_name(year: int, month: int, day: int) -> str:
+    return f"trends_{format_yyyy_mm_dd(year, month, day)}.csv"
 
 
 def insert_to_obj_id(insert_one_result: InsertOneResult | str) -> ObjectId:
@@ -50,10 +68,6 @@ class DBTwitterColl:
         obj_id = insert_to_obj_id(insert_one_result_raw)
         self.raw.update_one({"_id": obj_id}, {"$set": {"is_processed": True}})
 
-def _get_accumulated_name(date_from: datetime, date_to: datetime) -> str:
-    accumulated_name = f"topics_from_{date_to.year}_{date_to.month}_{date_to.day}_"
-    accumulated_name += f"to_{date_from.year}_{date_from.month}_{date_from.day}.csv"
-    return accumulated_name
 
 class DBTwitter(DBMongoBase):
     def __init__(self, path_data: Path, db_name: str, host=HOST_DEFAULT):
@@ -62,8 +76,8 @@ class DBTwitter(DBMongoBase):
         
         self.path_data = path_data
         self.path_reports_folder = self.path_data / "reports"
-        self.path_reports_accumulated_folder = self.path_reports_folder / "accumulated"
-        self.path_reports_per_day_folder = self.path_reports_folder / "per_day"
+        self.path_reports_accumulated_folder = self.path_reports_folder / "trends_accumulated"
+        self.path_reports_per_day_folder = self.path_reports_folder / "trends_per_day"
         self.path_backup_db = self.path_data / "backup_db"
         self.path_acc = self.path_data / "acc.json"
         self.__init_db()
@@ -86,30 +100,66 @@ class DBTwitter(DBMongoBase):
         insert_one_result = self.coll.raw.insert_one(raw_data.model_dump())
         return insert_one_result
 
-    def get_trends_accumulated(
+    def get_trends_df_accumulated(
             self,
             n_days_back: int = 7,
             date_to: datetime = "now",
             with_save: bool = True) -> pd.DataFrame:
-        dfs_range = []
+        dates_empty: List[datetime] = []
+        dates_accumulated: List[datetime] = []
+        df_accumulated = []
         for date in iter_dates_delta_n_days_back(n_days_back=n_days_back, date_now=date_to):
             trends_date = self.coll.trends_from_date_range(date)
             if trends_date is not None:
-                dfs_range.append(trends_date.get_df())
+                dates_accumulated.insert(0, date["$gte"])
+                df_accumulated.append(trends_date.get_df())
+            else:
+                dates_empty.insert(0, date["$gte"])
+        
+        if len(dates_empty)!=0:
+            dates_empty = [f"{str(d.day).zfill(2)}_{str(d.month).zfill(2)}" for d in dates_empty]
+            txt_no_data = "Days without data: " + " ~ ".join(dates_empty)
+            print(txt_no_data)
 
-        dfs_range = pd.concat(dfs_range)
-        dfs_range = dfs_range.groupby(["name", "query", "url", "domainContext"], as_index=False)["volume"].sum()
-        dfs_range.sort_values(by="volume", ascending=False, inplace=True)
-        dfs_range.reset_index(drop=True, inplace=True)
+
+        df_accumulated = pd.concat(df_accumulated)
+        def _consolidate_domain_context(group):
+            DELIMITER = " | "
+            domain_contexts = set(d.strip() for d in group if d.strip())
+            return DELIMITER.join(domain_contexts)
+        df_accumulated['domainContext'] = df_accumulated.groupby('name')['domainContext'].transform(_consolidate_domain_context)
+
+
+        df_accumulated = df_accumulated.groupby(["name", "query", "url", "domainContext"], as_index=False)["volume"].sum()
+        df_accumulated.sort_values(by="volume", ascending=False, inplace=True)
+        df_accumulated.reset_index(drop=True, inplace=True)
         
         if with_save:
-            if date_to == "now":
-                date_to = datetime.now().date()
-            date_from = date_to - timedelta(days=n_days_back - 1)
+            date_from, date_to = dates_accumulated[0], dates_accumulated[-1]
 
             path_accumulated = self.path_reports_accumulated_folder / _get_accumulated_name(date_from, date_to)
-            dfs_range.to_csv(path_accumulated)
-        return dfs_range
+            df_accumulated.to_csv(path_accumulated)
+            print(f"Accumulated from: {format_date_yyyy_mm_dd(date_from)}")
+            print(f"Accumulated to: {format_date_yyyy_mm_dd(date_to)}")
+            print(f"File saved inside: {path_accumulated.name}")
+        return df_accumulated
+
+    def get_trends_df_per_day(
+            self,
+            year: int,
+            month: int,
+            day: int,
+            with_save: bool = True) -> pd.DataFrame | None:
+        date = date_one_day(year=year, month=month, day=day)
+        trends = self.coll.trends_from_date_range(date)
+        if trends is None:
+            return None
+        else:
+            df_trends = trends.get_df()
+        if with_save:
+            path_df_per_day = self.path_reports_per_day_folder / _get_per_day_name(year, month, day)
+            df_trends.to_csv(path_df_per_day)
+        return df_trends
 
 
     def load_bots(self) -> BotList:
