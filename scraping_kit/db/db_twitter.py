@@ -14,7 +14,7 @@ from scraping_kit.db.base import DBMongoBase, HOST_DEFAULT
 from scraping_kit.bot_scraper import BotScraper, ReqArgs, BotList
 from scraping_kit.db.models.raw import RawData
 from scraping_kit.db.models.trends import Trends
-from scraping_kit.utils import iter_dates_delta_n_days_back, date_one_day
+from scraping_kit.utils import iter_dates_by_range, date_one_day
 
 
 def format_yyyy_mm_dd(year: int, month: int, day: int) -> str:
@@ -102,19 +102,19 @@ class DBTwitter(DBMongoBase):
 
     def get_trends_df_accumulated(
             self,
-            n_days_back: int = 7,
-            date_to: datetime = "now",
+            date_from: datetime,
+            date_to: datetime,
             with_save: bool = True) -> pd.DataFrame:
         dates_empty: List[datetime] = []
         dates_accumulated: List[datetime] = []
         df_accumulated = []
-        for date in iter_dates_delta_n_days_back(n_days_back=n_days_back, date_now=date_to):
+        for date in iter_dates_by_range(date_from=date_from, date_to=date_to):
             trends_date = self.coll.trends_from_date_range(date)
             if trends_date is not None:
-                dates_accumulated.insert(0, date["$gte"])
+                dates_accumulated.append(date["$gte"])
                 df_accumulated.append(trends_date.get_df())
             else:
-                dates_empty.insert(0, date["$gte"])
+                dates_empty.append(date["$gte"])
         
         if len(dates_empty)!=0:
             dates_empty = [f"{str(d.day).zfill(2)}_{str(d.month).zfill(2)}" for d in dates_empty]

@@ -12,18 +12,21 @@ def date_one_day(year: int, month: int, day: int) -> Dict[str, datetime]:
     return date_delta(date_i=date_i, date_f=date_f)
 
 
-def iter_dates_delta_n_days_back(n_days_back: int = 7, date_now: datetime = "now") -> Generator[List[Dict[str, datetime]], None, None]:
-    assert isinstance(n_days_back, int) and n_days_back > 0, "`n_days` have a positive integer."
-    if date_now == "now":
-        date_now = datetime.now()
-    date_now = date_now.date()
+def iter_dates_by_range(date_from: datetime, date_to: datetime) -> Generator[Dict[str, datetime], None, None]:
+    date_from, date_to = date_from.date(), date_to.date()
+    assert date_from < date_to, "`date_to` must be greater"
     
-    for _ in range(n_days_back):
-        yield date_one_day(year=date_now.year, month=date_now.month, day=date_now.day)
-        date_now -= timedelta(days=1)
+    yield date_one_day(date_from.year, date_from.month, date_from.day)
 
-def dates_delta_n_days_back(n_days_back: int = 7, date_now: datetime = "now") -> List[Dict[str, datetime]]:
+    is_finish = False
+    date_aux = date_from
+    while not is_finish:
+        date_aux += timedelta(days=1)
+        yield date_one_day(date_aux.year, date_aux.month, date_aux.day)
+        if date_aux >= date_to:
+            is_finish = True
+    
+def dates_delta_n_days_back(date_from: datetime, date_to: datetime) -> List[Dict[str, datetime]]:
     """ Returns a list of date ranges, starting with the `date_now` and `n_days_back`."""
-    dates = [date for date in iter_dates_delta_n_days_back(n_days_back=n_days_back, date_now=date_now)]
-    return dates
+    return list(date for date in iter_dates_by_range(date_from, date_to))
 
