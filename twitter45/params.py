@@ -1,4 +1,4 @@
-from typing import Type
+from typing import Type, Literal
 
 from pydantic import BaseModel
 
@@ -7,6 +7,8 @@ from twitter45.headers import HeaderTwitter45
 
 
 class BaseReqArgsTwitter45(ReqArgs):
+    method: Literal["GET", "POST"] = "GET"
+
     @classmethod
     def header_cls(cls) -> Type[Headers]:
         return HeaderTwitter45
@@ -80,20 +82,31 @@ class ArgsUserTimeline(BaseReqArgsTwitter45):
     def url(self) -> str:
         return "https://twitter-api45.p.rapidapi.com/followers.php"
 #-------------------------------------Followers-------------------------------------
-
+'''
 
 #-------------------------------------Search-------------------------------------
-#Returns a search results for the specified query in Twitter search.
-    @property
+class ParamsSearch(BaseModel):
+    query: str
+    cursor: str = ""
+
+class ArgsSearch(BaseReqArgsTwitter45):
+    """ Returns a search results for the specified query in Twitter search."""
+    params: ParamsSearch
+    
+    @classmethod
+    def endpoint_name(cls) -> str:
+        return "search"
+    
+    @classmethod
     def url(self) -> str:
         return "https://twitter-api45.p.rapidapi.com/search.php"
 #-------------------------------------Search-------------------------------------
 
-
+'''
 #-------------------------------------Check Retweet-------------------------------------
 #This endpoint get latest tweets of the user and checks if there is a retweet of the needed tweet.
 #WARNING: might not be suitable for old retweets.
-    @property
+    @classmethod
     def url(self) -> str:
         return "https://twitter-api45.p.rapidapi.com/checkretweet.php"
 #-------------------------------------Check Retweet-------------------------------------
@@ -102,7 +115,7 @@ class ArgsUserTimeline(BaseReqArgsTwitter45):
 #-------------------------------------Check follow-------------------------------------
 #This endpoint get latest subscriptins of the user and latest followers for the target account. And checks if user follows the needed account.
 #WARNING: might not be suitable for big accounts or old subscriptions.
-    @property
+    @classmethod
     def url(self) -> str:
         return "https://twitter-api45.p.rapidapi.com/checkfollow.php"
 #-------------------------------------Check follow-------------------------------------
@@ -110,7 +123,7 @@ class ArgsUserTimeline(BaseReqArgsTwitter45):
 
 #-------------------------------------List timeline-------------------------------------
 #With this endpoint you can get the timeline of the lists on Twitter.
-    @property
+    @classmethod
     def url(self) -> str:
         return "https://twitter-api45.p.rapidapi.com/listtimeline.php"
 #-------------------------------------List timeline-------------------------------------
@@ -118,7 +131,7 @@ class ArgsUserTimeline(BaseReqArgsTwitter45):
 
 #-------------------------------------User's likes-------------------------------------
 #With this endpoint you can get user's latest likes.
-    @property
+    @classmethod
     def url(self) -> str:
         return "https://twitter-api45.p.rapidapi.com/userlikes.php"
 #-------------------------------------User's likes-------------------------------------
@@ -126,7 +139,7 @@ class ArgsUserTimeline(BaseReqArgsTwitter45):
 
 #-------------------------------------User replies-------------------------------------
 #Gets user's replies on twitter.
-    @property
+    @classmethod
     def url(self) -> str:
         return "https://twitter-api45.p.rapidapi.com/replies.php"
 #-------------------------------------User replies-------------------------------------
@@ -135,7 +148,7 @@ class ArgsUserTimeline(BaseReqArgsTwitter45):
 #-------------------------------------Check Like-------------------------------------
 #This endpoint get latest like of the user and checks if there is a like of the needed tweet.
 #WARNING: might not be suitable for the old likes.
-    @property
+    @classmethod
     def url(self) -> str:
         return "https://twitter-api45.p.rapidapi.com/checklike.php"
 #-------------------------------------Check Like-------------------------------------
