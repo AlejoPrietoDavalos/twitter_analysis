@@ -71,6 +71,7 @@ class DBTwitterColl:
         self.raw.update_one({"_id": obj_id}, {"$set": {"is_processed": True}})
 
     def save_topic(self, topic: Topic) -> None:
+        """ TODO: Este método podría ser genérico."""
         self.topics.insert_one(topic.model_dump())
 
 
