@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Type, Dict, List
+from typing import Type, Dict, List, Tuple
 from datetime import datetime
 from pathlib import Path
 from requests import Response
@@ -15,6 +15,7 @@ from scraping_kit.bot_scraper import BotScraper, ReqArgs, BotList
 from scraping_kit.db.models.raw import RawData
 from scraping_kit.db.models.trends import Trends
 from scraping_kit.utils import iter_dates_by_range, date_one_day
+from scraping_kit.db.models.topics import Topic
 
 
 def format_yyyy_mm_dd(year: int, month: int, day: int) -> str:
@@ -47,6 +48,7 @@ class DBTwitterColl:
         self.cache: Collection = db.get_collection("cache")
         self.raw: Collection = db.get_collection("raw")
         self.trends: Collection = db.get_collection("trends")
+        self.topics: Collection = db.get_collection("topics")
         self.user: Collection = db.get_collection("user")
         self.user_suspended: Collection = db.get_collection("user_suspended")
         self.tweet: Collection = db.get_collection("tweet")
@@ -67,6 +69,9 @@ class DBTwitterColl:
     def change_is_processed(self, insert_one_result_raw: InsertOneResult | str) -> None:
         obj_id = insert_to_obj_id(insert_one_result_raw)
         self.raw.update_one({"_id": obj_id}, {"$set": {"is_processed": True}})
+
+    def save_topic(self, topic: Topic) -> None:
+        self.topics.insert_one(topic.model_dump())
 
 
 class DBTwitter(DBMongoBase):
@@ -166,9 +171,13 @@ class DBTwitter(DBMongoBase):
         return BotList.load_from_json(self.path_acc)
 
     def requests_and_save(self, req_args: Type[ReqArgs], bot: BotScraper) -> InsertOneResult:
-        response, creation_date = bot.get_response(req_args)
+        response, creation_date = self.requests(req_args, bot)
         insert_one_result_raw = self.add_raw_data(req_args, response, creation_date)
         return insert_one_result_raw
+
+    def requests(self, req_args: Type[ReqArgs], bot: BotScraper) -> tuple[Response, datetime]:
+        response, creation_date = bot.get_response(req_args)
+        return response, creation_date
 
     def __init_db(self) -> None:
         self.path_data.mkdir(exist_ok=True)
