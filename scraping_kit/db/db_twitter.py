@@ -15,6 +15,7 @@ from scraping_kit.bot_scraper import BotScraper, ReqArgs, BotList
 from scraping_kit.db.models.raw import RawData
 from scraping_kit.db.models.trends import Trends
 from scraping_kit.utils import iter_dates_by_range, date_one_day
+from scraping_kit.db.models.search import Search
 from scraping_kit.db.models.topics import Topic
 
 
@@ -53,6 +54,7 @@ class DBTwitterColl:
         self.user_suspended: Collection = db.get_collection("user_suspended")
         self.tweet: Collection = db.get_collection("tweet")
         self.cursors: Collection = db.get_collection("cursors")
+        self.search: Collection = db.get_collection("search")
 
     def trends_from_insert_id(self, insert_one_result_trend: InsertOneResult | str) -> Trends | None:
         obj_id = insert_to_obj_id(insert_one_result_trend)
@@ -69,6 +71,9 @@ class DBTwitterColl:
     def change_is_processed(self, insert_one_result_raw: InsertOneResult | str) -> None:
         obj_id = insert_to_obj_id(insert_one_result_raw)
         self.raw.update_one({"_id": obj_id}, {"$set": {"is_processed": True}})
+
+    def save_search(self, search: Search) -> None:
+        self.search.insert_one(search.model_dump())
 
     def save_topic(self, topic: Topic) -> None:
         """ TODO: Este método podría ser genérico."""
