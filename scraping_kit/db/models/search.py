@@ -1,4 +1,4 @@
-from typing import List, Literal
+from typing import List, Literal, Optional, Generator
 from datetime import datetime
 
 from pydantic import BaseModel
@@ -26,14 +26,32 @@ class Tweet(BaseModel):
     quotes: int
     replies: int
     retweets: int
-    views: str
+    views: Optional[int]
     user_info: UserInfo
-    media: list
+    media: dict | list
 
 
 class Search(BaseModel):
+    query: str
     timeline: List[Tweet]
-    next_cursor: str
+    next_cursor: Optional[str]
     creation_date: datetime
 
+    def __getitem__(self, idx: int) -> Tweet:
+        return self.timeline[idx]
 
+    def iter_tweets(self) -> Generator[Tweet, None, None]:
+        return (tweet for tweet in self.timeline)
+
+    def sort_tweets(self):
+        def _sort_metric(t: Tweet) -> int:
+            views = 0 if t.views is None else t.views
+            return t.replies + t.retweets + t.favorites + views
+        self.timeline.sort(key=_sort_metric, reverse=True)
+
+    def get_texts(self) -> List[str]:
+        self.sort_tweets()
+        texts = []
+        for tweet in self.iter_tweets():
+            texts.append(tweet.text)
+        return texts

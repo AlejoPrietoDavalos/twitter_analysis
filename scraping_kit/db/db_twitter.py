@@ -1,15 +1,20 @@
 from __future__ import annotations
-from typing import Type, Dict, List, Tuple
+from typing import Type, Dict, List, Tuple, Generator
 from datetime import datetime
 from pathlib import Path
 from requests import Response
+import random
+import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import pandas as pd
+import numpy as np
 from bson import ObjectId
 from pymongo.results import InsertOneResult
 from pymongo.database import Database
 from pymongo.collection import Collection
 
+from scraping_kit.dl import instance_classifier
 from scraping_kit.db.base import DBMongoBase, HOST_DEFAULT
 from scraping_kit.bot_scraper import BotScraper, ReqArgs, BotList
 from scraping_kit.db.models.raw import RawData
@@ -17,6 +22,7 @@ from scraping_kit.db.models.trends import Trends
 from scraping_kit.utils import iter_dates_by_range, date_one_day
 from scraping_kit.db.models.search import Search
 from scraping_kit.db.models.topics import Topic
+from twitter45.params import ArgsSearch
 
 
 def format_yyyy_mm_dd(year: int, month: int, day: int) -> str:
@@ -35,13 +41,20 @@ def _get_accumulated_name(date_from: datetime, date_to: datetime) -> str:
 def _get_per_day_name(year: int, month: int, day: int) -> str:
     return f"trends_{format_yyyy_mm_dd(year, month, day)}.csv"
 
-
 def insert_to_obj_id(insert_one_result: InsertOneResult | str) -> ObjectId:
     if isinstance(insert_one_result, str):
         insert_one_result = ObjectId(insert_one_result)
     elif isinstance(insert_one_result, InsertOneResult):
         insert_one_result = insert_one_result.inserted_id
     return insert_one_result
+
+def iter_args_search(trend_names: List[str]) -> Generator[ArgsSearch, None, None]:
+    return (ArgsSearch.from_trend_name(trend_name) for trend_name in (trend_names))
+
+def get_tweets_search(bot: BotScraper, req_args: ArgsSearch) -> Tuple[Response, datetime, ArgsSearch] | None:
+    """ `query_str` must be the 'query' element within the dataframe."""
+    response, creation_date = bot.get_response(req_args)
+    return response, creation_date, req_args
 
 
 class DBTwitterColl:
@@ -67,11 +80,34 @@ class DBTwitterColl:
         if trends_json is not None:
             return Trends(**trends_json)
 
-
     def change_is_processed(self, insert_one_result_raw: InsertOneResult | str) -> None:
         obj_id = insert_to_obj_id(insert_one_result_raw)
         self.raw.update_one({"_id": obj_id}, {"$set": {"is_processed": True}})
 
+    def collect_searchs_by_trends(
+            self,
+            trend_names_uniques: List[str],
+            bots: BotList,
+            max_workers: int = 1
+        ) -> List[ArgsSearch]:
+        """ Recolecta los searchs para cada trend, y retorna los requests fallidos."""
+        failed_requests = []
+        with ThreadPoolExecutor(max_workers=max_workers) as pool:
+            iter_futures = (pool.submit(get_tweets_search, random.choice(bots), req_args)
+                            for req_args in iter_args_search(trend_names_uniques))
+            
+            for future in as_completed(iter_futures):
+                search = future.result()
+                response, creation_date, req_args = search
+                if response.status_code != 200:
+                    failed_requests.append(req_args)
+                else:
+                    search_json = response.json()
+                    search_json["query"] = req_args.params.query
+                    search_json["creation_date"] = creation_date
+                    self.search.insert_one(search_json)
+        return failed_requests
+    
     def save_search(self, search: Search) -> None:
         self.search.insert_one(search.model_dump())
 
@@ -144,7 +180,26 @@ class DBTwitter(DBMongoBase):
         df_accumulated = df_accumulated.groupby(["name", "query", "url", "domainContext"], as_index=False)["volume"].sum()
         df_accumulated.sort_values(by="volume", ascending=False, inplace=True)
         df_accumulated.reset_index(drop=True, inplace=True)
-        
+
+
+        # Se agregan los topics.
+        df_accumulated["topics_1_a"] = ""
+        df_accumulated["topics_1_b"] = ""
+        df_accumulated["topics_2_a"] = ""
+        df_accumulated["topics_2_b"] = ""
+        for i, row in df_accumulated.iterrows():
+            name = row["name"]
+            topic_doc = self.coll.topics.find_one({"query": name})
+            if topic_doc is not None:
+                topic = Topic(**topic_doc)
+                #topics_concat = " | ".join(topic.topics_1.labels[:2])  # Obtengo los primeros 2.
+                topics_1_a, topics_1_b = topic.topics_1.labels[:2]
+                df_accumulated.loc[i, "topics_1_a"] = topics_1_a
+                df_accumulated.loc[i, "topics_1_b"] = topics_1_b
+                
+                topics_2_a, topics_2_b = topic.topics_2.labels[:2]
+                df_accumulated.loc[i, "topics_2_a"] = topics_2_a
+                df_accumulated.loc[i, "topics_2_b"] = topics_2_b
         if with_save:
             date_from, date_to = dates_accumulated[0], dates_accumulated[-1]
 
@@ -172,6 +227,37 @@ class DBTwitter(DBMongoBase):
             df_trends.to_csv(path_df_per_day)
         return df_trends
 
+    def create_topics_trends(self, trend_names: List[str], topics_1_to_topics_2: dict, topics_1: List[str], n_text_context=10, nro_process=None):
+        len_trends = len(trend_names)
+        #dts = []
+        classifier = instance_classifier()
+        for i, trend_name in enumerate(trend_names, 1):
+            #t_i = time.time()
+            search = Search(**self.coll.search.find_one({"query": trend_name}))
+            topic, texts_joined = Topic.create_from_search(search, classifier, topics_1, n_text_context)
+            topic.calc_topics_2(topics_1_to_topics_2, texts_joined, classifier, n_text_context)
+            self.coll.save_topic(topic)
+            
+            #dts.append(time.time() - t_i)
+            #n_remaining = len_trends - i
+            print(" | ".join([
+                f"process {nro_process}",
+                f"{i}/{len_trends}",
+                #f"time_stimated={int(n_remaining * np.mean(dts)) / 60} min",
+                f"trend_name: {topic.query}",
+                f"topics_1: {topic.topics_1.labels[:2]}",
+                f"topics_2: {topic.topics_2.labels[:2]}"
+            ]))
+
+    def get_trends_to_create_topics(self) -> List[str]:
+        """ Esta función retorna todos los trend_names para hacer los topics."""
+        trend_names = []
+        for search_doc in self.coll.search.find():
+            search = Search(**search_doc)
+            topic_doc = self.coll.topics.find_one({"query": search.query})
+            if topic_doc is None:
+                trend_names.append(search.query)
+        return trend_names
 
     def load_bots(self) -> BotList:
         return BotList.load_from_json(self.path_acc)

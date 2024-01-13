@@ -100,6 +100,11 @@ class ArgsSearch(BaseReqArgsTwitter45):
     @classmethod
     def url(self) -> str:
         return "https://twitter-api45.p.rapidapi.com/search.php"
+    
+    @classmethod
+    def from_trend_name(cls, trend_name: str, cursor: str = "") -> ParamsSearch:
+        return ArgsSearch(params=ParamsSearch(query=trend_name, cursor=cursor))
+
 #-------------------------------------Search-------------------------------------
 
 '''

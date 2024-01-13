@@ -1,3 +1,4 @@
+""" https://rapidapi.com/brkygt88/api/twitter-trends5/"""
 from typing import Type
 from pydantic import BaseModel, Field
 
