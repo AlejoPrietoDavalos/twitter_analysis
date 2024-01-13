@@ -22,6 +22,7 @@ from scraping_kit.db.models.trends import Trends
 from scraping_kit.utils import iter_dates_by_range, date_one_day
 from scraping_kit.db.models.search import Search
 from scraping_kit.db.models.topics import Topic
+from scraping_kit.db.leak import get_trend_names_uniques
 from twitter45.params import ArgsSearch
 
 
@@ -106,6 +107,12 @@ class DBTwitterColl:
                     search_json["query"] = req_args.params.query
                     search_json["creation_date"] = creation_date
                     self.search.insert_one(search_json)
+        
+        n_failed = len(failed_requests)
+        if n_failed == 0:
+            print("--> All downloads were completed without problems.")
+        else:
+            print(f"--> There were {n_failed} failed downloads, try running this script again after a while.")
         return failed_requests
     
     def save_search(self, search: Search) -> None:
@@ -248,6 +255,15 @@ class DBTwitter(DBMongoBase):
                 f"topics_1: {topic.topics_1.labels[:2]}",
                 f"topics_2: {topic.topics_2.labels[:2]}"
             ]))
+
+    def collect_searchs_topics(self, bots: BotList, max_workers: int) -> list:
+        trend_names_uniques = get_trend_names_uniques(self, not_in_topics=True, not_in_searchs=True)
+        failed_requests = self.coll.collect_searchs_by_trends(
+            trend_names_uniques,
+            bots,
+            max_workers
+        )
+        return failed_requests
 
     def get_trends_to_create_topics(self) -> List[str]:
         """ Esta función retorna todos los trend_names para hacer los topics."""

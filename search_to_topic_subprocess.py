@@ -4,8 +4,10 @@ import sys
 import multiprocessing
 from pathlib import Path
 
+from scraping_kit import DBTwitter, load_db_and_bots
+from scraping_kit.bot_scraper import BotList
+from scraping_kit.db.leak import get_trend_names_uniques
 from scraping_kit.db.models.topics import get_topic_classes
-from scraping_kit import DBTwitter
 
 
 def task(trend_names: List[str], n_text_context: int, nro_process: int):
@@ -56,8 +58,11 @@ def main(trend_names: List[str], n_process: int, n_text_context: int) -> None:
 if __name__ == "__main__":
     n_process = int(sys.argv[1])
     n_text_context = 5
+    MAX_WORKERS = 10    # Número de workers para realizar las peticiones al servidor.
 
     path_data = Path("data")
-    db_tw = DBTwitter(path_data, "scrape_tw")
+    db_tw, bots = load_db_and_bots(path_data, "scrape_tw")
+    failed_requests = db_tw.collect_searchs_topics(bots, MAX_WORKERS)
+
     trend_names = db_tw.get_trends_to_create_topics()
     main(trend_names, n_process, n_text_context)

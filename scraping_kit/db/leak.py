@@ -9,8 +9,8 @@ from scraping_kit.db.models.trends import Trends
 def get_trend_names_uniques(
         db_tw: DBTwitter,
         not_in_topics: bool = True,
-        not_in_searchs: bool = True,
-        reverse: bool = False) -> List[str]:
+        not_in_searchs: bool = True
+    ) -> List[str]:
     trend_names = []
     for trends_doc in db_tw.coll.trends.find():
         trends = Trends(**trends_doc)
@@ -27,10 +27,6 @@ def get_trend_names_uniques(
             else:
                 cond_2 = True
             
-            cond_final = cond_1 and cond_2
-            if reverse:
-                cond_final = not(cond_final)
-            
-            if cond_final:
+            if cond_1 and cond_2:
                 trend_names.append(trend.name)
     return list(np.unique(trend_names))
