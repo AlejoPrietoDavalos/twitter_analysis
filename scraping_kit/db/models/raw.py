@@ -1,4 +1,3 @@
-from typing import Type
 from datetime import datetime, timezone
 
 from pydantic import BaseModel, ConfigDict, field_validator

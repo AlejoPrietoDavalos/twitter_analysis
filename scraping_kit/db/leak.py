@@ -2,12 +2,12 @@ from typing import List
 
 import numpy as np
 
-from scraping_kit.db.db_twitter import DBTwitter
+#from scraping_kit.db.db_twitter import DBTwitter
 from scraping_kit.db.models.trends import Trends
 
 
 def get_trend_names_uniques(
-        db_tw: DBTwitter,
+        db_tw,#: DBTwitter,
         not_in_topics: bool = True,
         not_in_searchs: bool = True
     ) -> List[str]:

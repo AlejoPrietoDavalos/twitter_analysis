@@ -4,11 +4,9 @@ from datetime import datetime
 from pathlib import Path
 from requests import Response
 import random
-import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import pandas as pd
-import numpy as np
 from bson import ObjectId
 from pymongo.results import InsertOneResult
 from pymongo.database import Database

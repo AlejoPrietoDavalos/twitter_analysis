@@ -1,9 +1,7 @@
 from __future__ import annotations
-from typing import Type, TypeVar, Tuple
+from typing import Type, TypeVar
 from pydantic import BaseModel
 from abc import abstractclassmethod
-from datetime import datetime
-from requests import Response
 
 from scraping_kit.bot_scraper import BotScraper, ReqArgs
 
