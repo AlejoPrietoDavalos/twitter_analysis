@@ -5,8 +5,6 @@ import multiprocessing
 from pathlib import Path
 
 from scraping_kit import DBTwitter, load_db_and_bots
-from scraping_kit.bot_scraper import BotList
-from scraping_kit.db.leak import get_trend_names_uniques
 from scraping_kit.db.models.topics import get_topic_classes
 
 
@@ -42,8 +40,8 @@ def main(trend_names: List[str], n_process: int, n_text_context: int) -> None:
     for nro_process, trend_names in enumerate(list_trend_names):
         if len(trend_names) != 0:
             p = multiprocessing.Process(
-                target=task,
-                args=(
+                target = task,
+                args = (
                     trend_names,
                     n_text_context,
                     nro_process,
