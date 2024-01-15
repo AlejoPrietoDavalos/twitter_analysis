@@ -367,7 +367,7 @@ class DBTwitter(DBMongoBase):
             req_args: ArgsUserTimeline
         ) -> None:
         if response.status_code != 200:
-            user = UserSuspended(profile=req_args.params.screenname)
+            user = UserSuspended(profile=req_args.screenname)
             self.add_update_user(user)
             return None
         else:
@@ -376,11 +376,11 @@ class DBTwitter(DBMongoBase):
                 _user_raw = data.pop("user")
                 _status = _user_raw["status"]
                 if _status == "suspended" or _status == "error":
-                    user = UserSuspended(profile=req_args.params.screenname)
+                    user = UserSuspended(profile=req_args.screenname)
                     self.add_update_user(user)
                     return None
             except JSONDecodeError:
-                user = UserSuspended(profile=req_args.params.screenname)
+                user = UserSuspended(profile=req_args.screenname)
                 self.add_update_user(user)
                 return None
             
@@ -403,12 +403,6 @@ class DBTwitter(DBMongoBase):
                 creation_date = creation_date
             )
             self.add_update_cursor(cursor, user)
-            
-            #if len(timeline)==0:
-            #    print(cursor.next_cursor)
-
-            #if next_cursor is None and user.status != "suspended":
-            #    pass
 
     def collect_usertimeline(self, list_screennames: List[str], bots: BotList, max_workers: int) -> None:
         print("~~~~~Start Scraping Users~~~~~")
