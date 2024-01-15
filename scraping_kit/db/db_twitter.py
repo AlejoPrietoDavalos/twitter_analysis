@@ -1,8 +1,8 @@
 from __future__ import annotations
-from typing import Type, Dict, List, Tuple, Generator
+from typing import Type, Dict, List, Tuple, Generator, Optional
 from datetime import datetime
 from pathlib import Path
-from requests import Response
+from requests import Response, JSONDecodeError
 import random
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -12,16 +12,20 @@ from pymongo.results import InsertOneResult
 from pymongo.database import Database
 from pymongo.collection import Collection
 
+from scraping_kit.db.filters import filter_profile, filter_tweet_user
 from scraping_kit.dl import instance_classifier
+from scraping_kit.utils import iter_dates_by_range, date_one_day
+from scraping_kit.db.leak import get_trend_names_uniques
 from scraping_kit.db.base import DBMongoBase, HOST_DEFAULT
 from scraping_kit.bot_scraper import BotScraper, ReqArgs, BotList
 from scraping_kit.db.models.raw import RawData
+from scraping_kit.db.models.cursor import Cursor
+from scraping_kit.db.models.users import User, UserSuspended
 from scraping_kit.db.models.trends import Trends
-from scraping_kit.utils import iter_dates_by_range, date_one_day
 from scraping_kit.db.models.search import Search
 from scraping_kit.db.models.topics import Topic
-from scraping_kit.db.leak import get_trend_names_uniques
-from twitter45.params import ArgsSearch
+from scraping_kit.db.models.tweet_user import TweetUser
+from twitter45.params import ArgsSearch, ArgsUserTimeline
 
 
 def format_yyyy_mm_dd(year: int, month: int, day: int) -> str:
@@ -55,6 +59,25 @@ def get_tweets_search(bot: BotScraper, req_args: ArgsSearch) -> Tuple[Response, 
     response, creation_date = bot.get_response(req_args)
     return response, creation_date, req_args
 
+def iter_args_usertimeline(list_screennames: List[str]) -> ArgsUserTimeline:
+    for screenname in list_screennames:
+        yield ArgsUserTimeline.from_screenname(screenname, cursor="")
+
+def get_user_timeline(
+        bot: BotScraper,
+        req_args: ArgsUserTimeline
+    ) -> Tuple[Response, datetime, ArgsUserTimeline]:
+    response, creation_date = bot.get_response(req_args=req_args)
+    return response, creation_date, req_args
+
+
+
+
+
+
+
+
+
 
 class DBTwitterColl:
     def __init__(self, db: Database):
@@ -64,7 +87,8 @@ class DBTwitterColl:
         self.topics: Collection = db.get_collection("topics")
         self.user: Collection = db.get_collection("user")
         self.user_suspended: Collection = db.get_collection("user_suspended")
-        self.tweet: Collection = db.get_collection("tweet")
+        self.tweet: Collection = db.get_collection("tweet")     # Este es el tweet del Search.
+        self.tweet_user: Collection = db.get_collection("tweet_user")
         self.cursors: Collection = db.get_collection("cursors")
         self.search: Collection = db.get_collection("search")
 
@@ -292,3 +316,120 @@ class DBTwitter(DBMongoBase):
         self.path_reports_per_day_folder.mkdir(exist_ok=True)
         self.path_backup_db.mkdir(exist_ok=True)
     
+    def add_update_tweet_user(self, tweet_user: TweetUser) -> None:
+        _filter = filter_tweet_user(tweet_user.tweet_id)
+        tweet_user_in_db = self.coll.tweet_user.find_one(_filter)
+        if tweet_user_in_db is None:
+            self.coll.tweet_user.insert_one(tweet_user.model_dump())
+        else:
+            self.coll.tweet_user.update_one(_filter, {"$set": tweet_user.model_dump()})
+    
+    def add_update_user(self, user: User | UserSuspended) -> None:
+        _filter = filter_profile(user.profile)
+        if isinstance(user, UserSuspended):
+            user_in_db = self.coll.user_suspended.find_one(_filter)
+            if user_in_db is None:
+                self.coll.user_suspended.insert_one(user.model_dump())
+        elif isinstance(user, User):
+            user_in_db = self.coll.user.find_one(_filter)
+            if user_in_db is None:  # Si no existe lo agrega.
+                self.coll.user.insert_one(user.model_dump())
+            else:                   # Si existe lo actualiza.
+                self.coll.user.update_one(_filter, {"$set": user.model_dump()})
+        else:
+            raise Exception("Invalid user.")
+    
+    def add_update_cursor(self, cursor: Cursor, user: User | UserSuspended) -> None:
+        _filter = filter_profile(user.profile)
+        cursor_in_db = self.coll.cursors.find_one(_filter)
+        if cursor_in_db is None:
+            self.coll.cursors.insert_one(cursor.model_dump())
+        else:
+            self.coll.cursors.update_one(_filter, {"$set": cursor.model_dump()})
+
+    def find_user(self, profile: str) -> User | UserSuspended | None:
+        _filter = filter_profile(profile=profile)
+        
+        user_suspended_doc = self.coll.user_suspended.find_one(_filter)
+        if user_suspended_doc is not None:
+            return UserSuspended(**user_suspended_doc)
+        
+        user_doc = self.coll.user.find_one(_filter)
+        if user_doc is not None:
+            return User(**user_doc)
+        
+        return None
+
+    def process_user_timeline_response(
+            self,
+            response: Response,
+            creation_date: datetime,
+            req_args: ArgsUserTimeline
+        ) -> None:
+        if response.status_code != 200:
+            user = UserSuspended(profile=req_args.params.screenname)
+            self.add_update_user(user)
+            return None
+        else:
+            try:
+                data = response.json()
+                _user_raw = data.pop("user")
+                _status = _user_raw["status"]
+                if _status == "suspended" or _status == "error":
+                    user = UserSuspended(profile=req_args.params.screenname)
+                    self.add_update_user(user)
+                    return None
+            except JSONDecodeError:
+                user = UserSuspended(profile=req_args.params.screenname)
+                self.add_update_user(user)
+                return None
+            
+            user = User(**_user_raw)
+            self.add_update_user(user)
+            timeline = data.pop("timeline")
+            for tweet_user_doc in timeline:
+                if tweet_user_doc["tweet_id"] is not None:
+                    tweet_user = TweetUser(
+                        rest_id = user.rest_id,
+                        profile = user.profile,
+                        **tweet_user_doc
+                    )
+                    self.add_update_tweet_user(tweet_user)
+            
+            cursor: Optional[str] = Cursor(
+                status = user.status,
+                profile = user.profile,
+                next_cursor = data.pop("next_cursor"),
+                creation_date = creation_date
+            )
+            self.add_update_cursor(cursor, user)
+            
+            #if len(timeline)==0:
+            #    print(cursor.next_cursor)
+
+            #if next_cursor is None and user.status != "suspended":
+            #    pass
+
+    def collect_usertimeline(self, list_screennames: List[str], bots: BotList, max_workers: int) -> None:
+        print("~~~~~Start Scraping Users~~~~~")
+        len_list_screennames = len(list_screennames)
+
+        response_errors = []
+        with ThreadPoolExecutor(max_workers=max_workers) as pool:
+            iter_futures = (pool.submit(get_user_timeline, random.choice(bots), req_args)
+                            for req_args in iter_args_usertimeline(list_screennames))
+            i = 0
+            for future in as_completed(iter_futures):
+                user_timeline = future.result()
+                response, creation_date, req_args = user_timeline
+                try:
+                    self.process_user_timeline_response(response, creation_date, req_args)
+                    i += 1
+                    print(f"{i}/{len_list_screennames}")
+                except Exception as e:
+                    print(str(e))
+                    print(f"{i} error | screenname: {req_args.params.screenname}")
+                    response_errors.append((response, creation_date, req_args))
+        
+        return response_errors
+
