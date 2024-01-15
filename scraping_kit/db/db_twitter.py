@@ -404,7 +404,7 @@ class DBTwitter(DBMongoBase):
             )
             self.add_update_cursor(cursor, user)
 
-    def collect_usertimeline(self, list_screennames: List[str], bots: BotList, max_workers: int) -> None:
+    def collect_usertimeline(self, list_screennames: List[str], bots: BotList, max_workers: int) -> list:
         print("~~~~~Start Scraping Users~~~~~")
         len_list_screennames = len(list_screennames)
 
