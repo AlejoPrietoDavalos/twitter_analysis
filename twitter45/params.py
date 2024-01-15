@@ -1,3 +1,4 @@
+from __future__ import annotations
 from typing import Type, Literal
 
 from pydantic import BaseModel
@@ -31,6 +32,16 @@ class ArgsUserTimeline(BaseReqArgsTwitter45):
     @classmethod
     def url(cls) -> str:
         return "https://twitter-api45.p.rapidapi.com/timeline.php"
+    
+    @classmethod
+    def from_screenname(cls, screenname: str, cursor: str = "") -> ArgsUserTimeline:
+        params = ParamsUserTimeline(screenname=screenname, cursor=cursor)
+        req_args = ArgsUserTimeline(params=params)
+        return req_args
+
+    @property
+    def screenname(self) -> str:
+        return self.params.screenname
 #-------------------------------------User Timeline-------------------------------------
 
 
