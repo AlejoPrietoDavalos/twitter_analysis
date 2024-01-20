@@ -588,3 +588,26 @@ class DBTwitter(DBMongoBase):
             if (follow.source in users_profile) or (follow.target in users_profile):
                 follows.append(follow)
         return follows
+
+    def collect_follows(
+            self,
+            users_full_data: UsersFullData,
+            bots: BotList,
+            days_to_update_follow_link: int = 120,
+            max_workers: int = 40
+        ):
+        with ThreadPoolExecutor(max_workers=max_workers) as pool:
+            iter_futures = (pool.submit(wrap_check_follow, self, bots.random_bot_2(), source, target, days_to_update_follow_link)
+                            for source, target in users_full_data.iter_profile_pairs())
+            n = len(users_full_data)
+            num_iters = n * (n - 1)
+            for i, future in enumerate(as_completed(iter_futures), 1):
+                is_download = future.result()
+                txt_iter = f"{i}/{num_iters}"
+                if is_download:
+                    txt_iter += " | Download sucessfull."
+                else:
+                    txt_iter += " | Existing link - Skip."
+                print(txt_iter)
+
+
