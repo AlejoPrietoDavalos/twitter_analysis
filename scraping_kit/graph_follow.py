@@ -253,7 +253,8 @@ class GraphFollows:
             self,
             with_save: bool = False,
             plot_style: GraphPlotStyle = None,
-            colors_ranges: List[Tuple[int, str]] = None
+            colors_ranges: List[Tuple[int, str]] = None,
+            mode: Literal["in", "out", "sum"] = "in"
         ) -> CairoPlot:
         if plot_style is None:
             plot_style = self.default_plot_style.model_dump()
@@ -264,7 +265,19 @@ class GraphFollows:
         plot_style["layout"] = self.graph.layout("fr")
         if colors_ranges is not None:
             colors_ranges.sort(key=lambda n_c: n_c[0], reverse=False)
-            vertex_color = [self.choice_color(v[KeyCol.ARROWS_IN], colors_ranges) for v in self.graph.vs]
+            vertex_color = []
+            for v in self.graph.vs:
+                if mode == "in":
+                    criteria = v[KeyCol.ARROWS_IN]
+                elif mode == "out":
+                    criteria = v[KeyCol.ARROWS_OUT]
+                elif mode == "sum":
+                    criteria = v[KeyCol.ARROWS_IN] + v[KeyCol.ARROWS_OUT]
+                else:
+                    raise Exception("Inválid mode: use -> 'in', 'out' or 'sum'.")
+                
+                color_choiced = self.choice_color(criteria, colors_ranges)
+                vertex_color.append(color_choiced)
             plot_style["vertex_color"] = vertex_color
 
         cairo_plot: CairoPlot = ig.plot(self.graph, **plot_style)
