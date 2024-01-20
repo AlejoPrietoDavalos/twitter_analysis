@@ -72,15 +72,15 @@ def wrap_get_user_timeline(
         days_update=14
     ) -> Tuple[Optional[Response], Optional[datetime], ArgsUserTimeline]:
     _filter = filter_profile(req_args.screenname)
-    cursor = db_tw.coll.cursors.find_one(_filter)
+    cursor_doc = db_tw.coll.cursors.find_one(_filter)
     user_suspended = db_tw.coll.user_suspended.find_one(_filter)
     
     if user_suspended is not None:
         return None, None, req_args
-    elif cursor is None:
+    elif cursor_doc is None:
         return get_user_timeline(bot, req_args)
     else:
-        cursor = Cursor(**cursor)
+        cursor = Cursor(**cursor_doc)
         dt = datetime.now() - cursor.creation_date
         if abs(dt.days) >= days_update:
             return get_user_timeline(bot, req_args)
@@ -420,6 +420,10 @@ class DBTwitter(DBMongoBase):
                 users.append(user)
         return users
 
+    def iter_tweet_user(self, profile: str) -> Generator[TweetUser, None, None]:
+        for t_doc in self.coll.tweet_user.find({"profile": profile}):
+            yield TweetUser(**t_doc)
+
     def process_user_timeline_response(
             self,
             response: Response,
@@ -492,7 +496,7 @@ class DBTwitter(DBMongoBase):
                         response_errors.append((response, creation_date, req_args))
                 else:
                     i += 1
-                    #print(f"~{i}/{len_list_screennames}")
+            print(f"Completed: {len_list_screennames}/{len_list_screennames}")
         return response_errors
     
     def get_user_full_data(self, profile: str, date_i: datetime, date_f: datetime) -> UserFullData | None:

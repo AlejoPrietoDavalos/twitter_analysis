@@ -1,4 +1,4 @@
-from typing import List, Generator
+from typing import List, Generator, Tuple
 
 from pydantic import BaseModel
 
@@ -34,6 +34,7 @@ class UserFullData(BaseModel):
         return self.user.followers
 
 
+
 class UsersFullData(BaseModel):
     all_users: List[UserFullData]
 
@@ -46,3 +47,9 @@ class UsersFullData(BaseModel):
     def sort_all(self, reverse=True) -> None:
         for user in self.all_users:
             user.sort_tweets(reverse=reverse)
+
+    def iter_profile_pairs(self) -> Generator[Tuple[str, str], None, None]:
+        for i, user_i in enumerate(self.all_users):
+            for j, user_j in enumerate(self.all_users):
+                if i != j:
+                    yield user_i.profile, user_j.profile

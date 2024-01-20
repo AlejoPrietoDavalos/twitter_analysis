@@ -141,11 +141,11 @@ class GraphFollows:
             date_i: datetime,
             date_f: datetime
         ):
-        self.graph = graph
+        self.graph: ig.Graph = graph
         self._g: Optional[ig.Graph] = None      # Aquí se guardará como caché la copia del grafo pero no dirigido.
         self.default_plot_style = default_plot_style
-        self.path_folder_out = path_folder_out
-        self.wc = wc
+        self.path_folder_out: Path = path_folder_out
+        self.wc: WordCloud = wc
         self.date_i: datetime = date_i
         self.date_f: datetime = date_f
     
@@ -170,6 +170,9 @@ class GraphFollows:
             self._g = self.graph.copy()
             self._g.to_undirected()
         return self._g
+
+    def find_name(self, name: str):
+        return self.graph.vs.find(name=name)
 
     def clear_cache(self) -> None:
         self._g = None
@@ -211,6 +214,8 @@ class GraphFollows:
             attributes = cls.get_attributes(users_full_data, wc)
         )
         graph.add_edges(follow_list.list_of_tuples)
+        graph.vs[KeyCol.ARROWS_IN] = graph.indegree()
+        graph.vs[KeyCol.ARROWS_OUT] = graph.outdegree()
 
         if default_plot_style is None:
             default_plot_style = GraphPlotStyle()
@@ -237,7 +242,19 @@ class GraphFollows:
         self.path_folder_range.mkdir(exist_ok=True)
         return self.choice_plot_name()
 
-    def plot(self, with_save: bool = False, plot_style: GraphPlotStyle = None) -> CairoPlot:
+    def choice_color(self, arrows_in: int, colors_ranges: List[Tuple[int, str]]) -> str:
+        for i in range(len(colors_ranges[-1])):
+            j = i+1
+            if colors_ranges[i][0] <= arrows_in < colors_ranges[j][0]:
+                return colors_ranges[i][1]
+        return colors_ranges[-1][1]
+
+    def plot(
+            self,
+            with_save: bool = False,
+            plot_style: GraphPlotStyle = None,
+            colors_ranges: List[Tuple[int, str]] = None
+        ) -> CairoPlot:
         if plot_style is None:
             plot_style = self.default_plot_style.model_dump()
         else:
@@ -245,6 +262,11 @@ class GraphFollows:
         
         plot_style["vertex_label"] = self.graph.vs[KeyCol.NAME]
         plot_style["layout"] = self.graph.layout("fr")
+        if colors_ranges is not None:
+            colors_ranges.sort(key=lambda n_c: n_c[0], reverse=False)
+            vertex_color = [self.choice_color(v[KeyCol.ARROWS_IN], colors_ranges) for v in self.graph.vs]
+            plot_style["vertex_color"] = vertex_color
+
         cairo_plot: CairoPlot = ig.plot(self.graph, **plot_style)
         
         if with_save:
