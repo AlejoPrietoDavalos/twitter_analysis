@@ -1,4 +1,5 @@
 """ https://rapidapi.com/brkygt88/api/twitter-trends5/"""
+from __future__ import annotations
 from typing import Type
 from pydantic import BaseModel, Field
 
@@ -26,3 +27,9 @@ class ArgsTwitterTrends(ReqArgs):
     @classmethod
     def url(cls) -> str:
         return "https://twitter-trends5.p.rapidapi.com/twitter/request.php"
+
+    @classmethod
+    def from_woeid(cls, woeid: str = None) -> ArgsTwitterTrends:
+        if woeid is None:
+            woeid = WOEIDCountry.united_states
+        return ArgsTwitterTrends(data=ParamsTwitterTrends(woeid=woeid))
