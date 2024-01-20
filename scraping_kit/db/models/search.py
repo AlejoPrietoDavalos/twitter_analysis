@@ -1,4 +1,5 @@
 from typing import List, Literal, Optional, Generator
+from functools import cached_property
 from datetime import datetime
 
 from pydantic import BaseModel
@@ -30,6 +31,10 @@ class Tweet(BaseModel):
     user_info: UserInfo
     media: dict | list
 
+    @cached_property
+    def create_at_datetime(self) -> datetime:
+        return datetime.strptime(self.created_at, '%a %b %d %H:%M:%S %z %Y')
+
 
 class Search(BaseModel):
     query: str
@@ -49,9 +54,10 @@ class Search(BaseModel):
             return t.replies + t.retweets + t.favorites + views
         self.timeline.sort(key=_sort_metric, reverse=True)
 
-    def get_texts(self) -> List[str]:
+    def get_texts(self, n_first_texts: int = None) -> List[str]:
         self.sort_tweets()
         texts = []
         for tweet in self.iter_tweets():
             texts.append(tweet.text)
-        return texts
+        
+        return texts if n_first_texts is None else texts[:n_first_texts]

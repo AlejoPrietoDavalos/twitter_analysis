@@ -1,5 +1,6 @@
 from typing import List, Any, Optional
 from datetime import datetime
+from functools import cached_property
 
 from pydantic import BaseModel
 
@@ -10,7 +11,7 @@ from pydantic import BaseModel
 #class MediaTweet(BaseModel):
 #    photo: List[MediaUrlHTTPS]
 
-class TweetUser(BaseModel):     # Guardar el pinned?
+class TweetUser(BaseModel):
     tweet_id: str
     rest_id: str
     profile: str
@@ -26,7 +27,7 @@ class TweetUser(BaseModel):     # Guardar el pinned?
     conversation_id: str
     media: Any
 
-    @property
+    @cached_property
     def create_at_datetime(self) -> datetime:
         return datetime.strptime(self.created_at, '%a %b %d %H:%M:%S %z %Y')
 

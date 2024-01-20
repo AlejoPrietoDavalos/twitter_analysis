@@ -1,4 +1,5 @@
-from typing import Literal, Optional
+from __future__ import annotations
+from typing import List, Literal, Optional, Generator, Tuple
 from pydantic import BaseModel
 
 class UserSuspended(BaseModel):
@@ -18,6 +19,34 @@ class User(BaseModel):
     protected: Optional[bool]
     location: str
     friends: int
-    sub_count: int
+    sub_count: int          # Este es el que importa.
     id: str
 
+
+class UserList(BaseModel):
+    users: List[User]
+
+    def __getitem__(self, idx: int) -> User:
+        return self.users[idx]
+
+    def __len__(self) -> int:
+        return len(self.users)
+
+    def __iter__(self):
+        return iter(self.users)
+
+    def sort(self, reverse=True) -> None:
+        self.users.sort(key=lambda user: user.sub_count, reverse=reverse)
+    
+    def keep_bests(self, n_bests: int) -> None:
+        self.sort()
+        self.users = self.users[:n_bests]
+
+    def iter_profile_pairs(self) -> Generator[Tuple[str, str], None, None]:
+        for i, user_i in enumerate(self.users):
+            for j, user_j in enumerate(self.users):
+                if i != j:
+                    yield user_i.profile, user_j.profile
+    
+    def get_profile_pairs(self) -> List[Tuple[str, str]]:
+        return list((s, t) for s, t in self.iter_profile_pairs())

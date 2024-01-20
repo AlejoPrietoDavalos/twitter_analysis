@@ -90,6 +90,10 @@ class BotList(BaseModel):
     def random_bot(self) -> Tuple[int, BotScraper]:
         idx = random.randint(0, len(self.bots) - 1)
         return idx, self.bots[idx]
+    
+    def random_bot_2(self) -> BotScraper:
+        _, bot = self.random_bot()
+        return bot
 
     def iter_random_bot(self, n_iters: int) -> Generator[Tuple[int, BotScraper], None, None]:
         return (self.random_bot() for _ in range(n_iters))

@@ -1,6 +1,6 @@
 from __future__ import annotations
 from typing import Type, Dict, List, Tuple, Generator, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from requests import Response, JSONDecodeError
 import random
@@ -12,28 +12,23 @@ from pymongo.results import InsertOneResult
 from pymongo.database import Database
 from pymongo.collection import Collection
 
-from scraping_kit.db.filters import filter_profile, filter_tweet_user
+from scraping_kit.db.models.user_full import UserFullData, UsersFullData
+from scraping_kit.db.filters import filter_profile, filter_tweet_user, filter_follow
 from scraping_kit.dl import instance_classifier
-from scraping_kit.utils import iter_dates_by_range, date_one_day
+from scraping_kit.utils import iter_dates_by_range, date_one_day, date_delta, format_date_yyyy_mm_dd, format_yyyy_mm_dd
 from scraping_kit.db.leak import get_trend_names_uniques
 from scraping_kit.db.base import DBMongoBase, HOST_DEFAULT
 from scraping_kit.bot_scraper import BotScraper, ReqArgs, BotList
 from scraping_kit.db.models.raw import RawData
+from scraping_kit.db.models.follow import Follow, FollowList
 from scraping_kit.db.models.cursor import Cursor
-from scraping_kit.db.models.users import User, UserSuspended
+from scraping_kit.db.models.users import User, UserSuspended, UserList
 from scraping_kit.db.models.trends import Trends
 from scraping_kit.db.models.search import Search
 from scraping_kit.db.models.topics import Topic
 from scraping_kit.db.models.tweet_user import TweetUser
-from twitter45.params import ArgsSearch, ArgsUserTimeline
+from twitter45.params import ArgsSearch, ArgsUserTimeline, ArgsCheckFollow
 
-
-def format_yyyy_mm_dd(year: int, month: int, day: int) -> str:
-    year, month, day = str(year).zfill(4), str(month).zfill(2), str(day).zfill(2)
-    return f"{year}_{month}_{day}"
-
-def format_date_yyyy_mm_dd(date: datetime) -> str:
-    return format_yyyy_mm_dd(date.year, date.month, date.day)
 
 def _get_accumulated_name(date_from: datetime, date_to: datetime) -> str:
     accumulated_name = "trends_"
@@ -70,13 +65,60 @@ def get_user_timeline(
     response, creation_date = bot.get_response(req_args=req_args)
     return response, creation_date, req_args
 
+def wrap_get_user_timeline(
+        db_tw: DBTwitter,
+        bot: BotScraper,
+        req_args: ArgsUserTimeline,
+        days_update=14
+    ) -> Tuple[Optional[Response], Optional[datetime], ArgsUserTimeline]:
+    _filter = filter_profile(req_args.screenname)
+    cursor = db_tw.coll.cursors.find_one(_filter)
+    user_suspended = db_tw.coll.user_suspended.find_one(_filter)
+    
+    if user_suspended is not None:
+        return None, None, req_args
+    elif cursor is None:
+        return get_user_timeline(bot, req_args)
+    else:
+        cursor = Cursor(**cursor)
+        dt = datetime.now() - cursor.creation_date
+        if abs(dt.days) >= days_update:
+            return get_user_timeline(bot, req_args)
+        else:
+            return None, None, req_args
 
+def get_check_follow(
+        bot: BotScraper,
+        req_args: ArgsCheckFollow
+    ) -> Tuple[Response, datetime, ArgsCheckFollow]:
+    response, creation_date = bot.get_response(req_args=req_args)
+    return response, creation_date, req_args
 
-
-
-
-
-
+def wrap_check_follow(
+        db_tw: DBTwitter,
+        bot: BotScraper,
+        source: str,
+        target: str,
+        days_to_update: int = 45
+    ) -> bool:
+    """ True if `source` follow `target`."""
+    req_args = ArgsCheckFollow.from_profiles(source, target)
+    _filter_follow = filter_follow(req_args.source, req_args.target)
+    follow_doc = db_tw.coll.follows.find_one(_filter_follow)
+    
+    is_download = False
+    if follow_doc is None:
+        response, creation_date, req_args = get_check_follow(bot, req_args)
+        db_tw.process_check_follow(response, creation_date, req_args)
+        is_download = True
+    else:
+        follow = Follow(**follow_doc)
+        dt = datetime.now() - follow.creation_date
+        if abs(dt.days) > days_to_update:
+            response, creation_date, req_args = get_check_follow(bot, req_args)
+            db_tw.process_check_follow(response, creation_date, req_args)
+            is_download = True
+    return is_download
 
 
 class DBTwitterColl:
@@ -91,6 +133,7 @@ class DBTwitterColl:
         self.tweet_user: Collection = db.get_collection("tweet_user")
         self.cursors: Collection = db.get_collection("cursors")
         self.search: Collection = db.get_collection("search")
+        self.follows: Collection = db.get_collection("follows")
 
     def trends_from_insert_id(self, insert_one_result_trend: InsertOneResult | str) -> Trends | None:
         obj_id = insert_to_obj_id(insert_one_result_trend)
@@ -154,9 +197,19 @@ class DBTwitter(DBMongoBase):
         self.path_reports_folder = self.path_data / "reports"
         self.path_reports_accumulated_folder = self.path_reports_folder / "trends_accumulated"
         self.path_reports_per_day_folder = self.path_reports_folder / "trends_per_day"
+        self.path_graph_follow_folder = self.path_reports_folder / "graph_follows"
         self.path_backup_db = self.path_data / "backup_db"
+        self.path_blacklist_words = self.path_data / "blacklist_words.xlsx"
         self.path_acc = self.path_data / "acc.json"
         self.__init_db()
+    
+    def __init_db(self) -> None:
+        self.path_data.mkdir(exist_ok=True)
+        self.path_reports_folder.mkdir(exist_ok=True)
+        self.path_reports_accumulated_folder.mkdir(exist_ok=True)
+        self.path_reports_per_day_folder.mkdir(exist_ok=True)
+        self.path_graph_follow_folder.mkdir(exist_ok=True)
+        self.path_backup_db.mkdir(exist_ok=True)
 
     def add_raw_data(self, req_args: Type[ReqArgs], response: Response, creation_date: datetime) -> InsertOneResult:
         if 200 <= response.status_code <= 299:
@@ -256,7 +309,13 @@ class DBTwitter(DBMongoBase):
             df_trends.to_csv(path_df_per_day)
         return df_trends
 
-    def create_topics_trends(self, trend_names: List[str], topics_1_to_topics_2: dict, topics_1: List[str], n_text_context=10, nro_process=None):
+    def create_topics_trends(
+            self,
+            trend_names: List[str],
+            topics_1_to_topics_2: dict,
+            topics_1: List[str],
+            n_text_context: int = 10,
+            nro_process: int = None) -> None:
         len_trends = len(trend_names)
         #dts = []
         classifier = instance_classifier()
@@ -308,13 +367,6 @@ class DBTwitter(DBMongoBase):
     def requests(self, req_args: Type[ReqArgs], bot: BotScraper) -> tuple[Response, datetime]:
         response, creation_date = bot.get_response(req_args)
         return response, creation_date
-
-    def __init_db(self) -> None:
-        self.path_data.mkdir(exist_ok=True)
-        self.path_reports_folder.mkdir(exist_ok=True)
-        self.path_reports_accumulated_folder.mkdir(exist_ok=True)
-        self.path_reports_per_day_folder.mkdir(exist_ok=True)
-        self.path_backup_db.mkdir(exist_ok=True)
     
     def add_update_tweet_user(self, tweet_user: TweetUser) -> None:
         _filter = filter_tweet_user(tweet_user.tweet_id)
@@ -347,18 +399,26 @@ class DBTwitter(DBMongoBase):
         else:
             self.coll.cursors.update_one(_filter, {"$set": cursor.model_dump()})
 
-    def find_user(self, profile: str) -> User | UserSuspended | None:
+    def find_user(self, profile: str, with_suspended=True) -> User | UserSuspended | None:
         _filter = filter_profile(profile=profile)
-        
-        user_suspended_doc = self.coll.user_suspended.find_one(_filter)
-        if user_suspended_doc is not None:
-            return UserSuspended(**user_suspended_doc)
+        if with_suspended:
+            user_suspended_doc = self.coll.user_suspended.find_one(_filter)
+            if user_suspended_doc is not None:
+                return UserSuspended(**user_suspended_doc)
         
         user_doc = self.coll.user.find_one(_filter)
         if user_doc is not None:
             return User(**user_doc)
         
         return None
+
+    def find_users(self, profiles: List[str], with_suspended=False) -> List[User]:
+        users = []
+        for profile in profiles:
+            user = self.find_user(profile, with_suspended)
+            if user is not None:
+                users.append(user)
+        return users
 
     def process_user_timeline_response(
             self,
@@ -404,26 +464,100 @@ class DBTwitter(DBMongoBase):
             )
             self.add_update_cursor(cursor, user)
 
-    def collect_usertimeline(self, list_screennames: List[str], bots: BotList, max_workers: int) -> list:
+    def collect_usertimeline(self, list_screennames: List[str], bots: BotList, max_workers: int, days_to_update=14) -> list:
         print("~~~~~Start Scraping Users~~~~~")
-        len_list_screennames = len(list_screennames)
+        list_screennames_leaked = []
+        for screenname in list_screennames:
+            _user_suspended = self.coll.user_suspended.find_one(filter_profile(screenname))
+            if _user_suspended is None:
+                list_screennames_leaked.append(screenname)
+        len_list_screennames = len(list_screennames_leaked)
 
         response_errors = []
         with ThreadPoolExecutor(max_workers=max_workers) as pool:
-            iter_futures = (pool.submit(get_user_timeline, random.choice(bots), req_args)
-                            for req_args in iter_args_usertimeline(list_screennames))
+            iter_futures = (pool.submit(wrap_get_user_timeline, self, random.choice(bots), req_args, days_to_update)
+                            for req_args in iter_args_usertimeline(list_screennames_leaked))
             i = 0
             for future in as_completed(iter_futures):
                 user_timeline = future.result()
-                response, creation_date, req_args = user_timeline
-                try:
-                    self.process_user_timeline_response(response, creation_date, req_args)
+                if user_timeline[0] is not None:
+                    response, creation_date, req_args = user_timeline
+                    try:
+                        self.process_user_timeline_response(response, creation_date, req_args)
+                        i += 1
+                        print(f"{i}/{len_list_screennames}")
+                    except Exception as e:
+                        print(str(e))
+                        print(f"{i} error | screenname: {req_args.params.screenname}")
+                        response_errors.append((response, creation_date, req_args))
+                else:
                     i += 1
-                    print(f"{i}/{len_list_screennames}")
-                except Exception as e:
-                    print(str(e))
-                    print(f"{i} error | screenname: {req_args.params.screenname}")
-                    response_errors.append((response, creation_date, req_args))
-        
+                    #print(f"~{i}/{len_list_screennames}")
         return response_errors
+    
+    def get_user_full_data(self, profile: str, date_i: datetime, date_f: datetime) -> UserFullData | None:
+        _filter = filter_profile(profile=profile)
+        user = self.coll.user.find_one(_filter)
+        if user is not None:
+            user = User(**user)
+            tweets_user = []
+            for tweet_user_doc in self.coll.tweet_user.find(_filter):
+                tweet_user = TweetUser(**tweet_user_doc)
+                # FIXME: Ver que hacer en caso que no encuentre nada.
+                if date_i <= tweet_user.create_at_datetime and tweet_user.create_at_datetime <= date_f:
+                    tweets_user.append(tweet_user)
+            return UserFullData(user=user, tweets_user=tweets_user)
+        else:
+            return None
 
+    def get_users_full_data(self, list_profiles: List[str], date_i: datetime, date_f: datetime) -> UsersFullData:
+        all_users = []
+        for profile in list_profiles:
+            user_full_data = self.get_user_full_data(profile, date_i, date_f)
+            if user_full_data is not None:
+                all_users.append(user_full_data)
+        return UsersFullData(all_users=all_users)
+
+    def get_user_list(self, list_profiles: List[str]) -> UserList:
+        users = self.find_users(list_profiles)
+        return UserList(users=users)
+
+    def get_cursor_by_user(self, user: User) -> Cursor:
+        _filter = filter_profile(user.profile)
+        return Cursor(**self.coll.cursors.find_one(_filter))
+
+    def process_check_follow(
+            self,
+            response: Response,
+            creation_date: datetime,
+            req_args: ArgsCheckFollow
+        ) -> None:
+        
+        if response.status_code == 200:
+            is_follow = response.json()["is_follow"]
+
+            follow = Follow(
+                source = req_args.source,
+                target = req_args.target,
+                is_follow = is_follow,
+                creation_date = creation_date
+            )
+            
+            _filter_follow = filter_follow(req_args.source, req_args.target)
+            follow_doc = self.coll.follows.find_one(_filter_follow)
+            if follow_doc is None:
+                self.coll.follows.insert_one(follow.model_dump())
+            else:
+                self.coll.follows.update_one(_filter_follow, {"$set": follow.model_dump()})
+        else:
+            raise Exception(f"Bad requests | source:{req_args.source} | target:{req_args.target}")
+
+    def get_follow_list(self, users: UserList) -> FollowList:
+        users_profile = {user.profile: None for user in users}
+
+        follows = FollowList(follows=[])
+        for follow_doc in self.coll.follows.find({"is_follow": True}):
+            follow = Follow(**follow_doc)
+            if (follow.source in users_profile) or (follow.target in users_profile):
+                follows.append(follow)
+        return follows

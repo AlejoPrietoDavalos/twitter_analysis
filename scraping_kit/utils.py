@@ -30,3 +30,19 @@ def dates_delta_n_days_back(date_from: datetime, date_to: datetime) -> List[Dict
     """ Returns a list of date ranges, starting with the `date_now` and `n_days_back`."""
     return list(date for date in iter_dates_by_range(date_from, date_to))
 
+
+def format_yyyy_xx(year: int, *xx) -> str:
+    return "_".join([str(year).zfill(4)] + [str(xx_).zfill(2) for xx_ in xx])
+
+def format_yyyy_mm_dd(year: int, month: int, day: int) -> str:
+    return format_yyyy_xx(year, month, day)
+
+def format_date_yyyy_mm_dd(date: datetime) -> str:
+    return format_yyyy_mm_dd(*date.timetuple()[:3])
+
+def format_date_full(date: datetime, n_elems=7) -> str:
+    """
+    - n_elems==6 -> from year to ms.
+    - n_elems==3 -> from year to day.
+    """
+    return format_yyyy_xx(*date.timetuple()[:n_elems])
