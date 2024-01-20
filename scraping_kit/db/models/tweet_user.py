@@ -31,13 +31,3 @@ class TweetUser(BaseModel):
     def create_at_datetime(self) -> datetime:
         return datetime.strptime(self.created_at, '%a %b %d %H:%M:%S %z %Y')
 
-    '''
-    def __init__(self, **data):
-        author = data.get("author", None)
-        if author is not None:
-            data.update({
-                "rest_id": author.pop("rest_id"),
-                "profile": author.pop("screen_name")
-            })
-        super().__init__(**data)
-    '''

@@ -19,6 +19,8 @@ class KeyCol:
     KEYWORDS = "keywords"
     FOLLOWERS = "followers"
     FOLLOWING = "following"
+    ARROWS_IN = "arrows_in"
+    ARROWS_OUT = "arrows_out"
 
 
 def get_blacklist_words(path_extra_words: Path = None, col_words=KeyCol.WORDS) -> set:
