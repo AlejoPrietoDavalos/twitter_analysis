@@ -1,18 +1,22 @@
 from __future__ import annotations
-from typing import Type, TypeVar, List, Tuple
+from typing import Type, TypeVar, List, Tuple, Generator, Optional
 from datetime import datetime
 from pathlib import Path
 
+import pandas as pd
 import igraph as ig
-from igraph.layout import Layout
 from igraph.drawing.cairo.plot import CairoPlot
-import matplotlib.pyplot as plt
-import matplotlib.image as mpimg
 from pydantic import BaseModel
+from wordcloud import WordCloud
 
 from scraping_kit.db.db_twitter import DBTwitter
+from scraping_kit.db.models.user_full import UsersFullData
 from scraping_kit.db.models.users import UserList
 from scraping_kit.utils import format_date_full, format_date_yyyy_mm_dd
+from scraping_kit.keywords import (
+    T_Keywords, KeyCol, get_blacklist_words, tweets2keywords, keywords_update
+)
+
 
 class GraphPlotStyle(BaseModel):
     bbox: Tuple[int, int] = (800, 800)
@@ -29,6 +33,102 @@ class GraphPlotStyle(BaseModel):
     layout: str = "auto"
 
 
+
+
+
+
+
+
+
+
+
+class KeywordsCluster:
+    def __init__(self, keywords: T_Keywords, profiles: list, idx: int):
+        self.keywords = keywords
+        self.profiles = profiles
+        self.idx = idx
+    
+    @property
+    def _col(self) -> str:
+        return f"cluster {self.idx}: "
+
+    @property
+    def kw_col(self) -> str:
+        return self._col + "kw"
+    
+    @property
+    def count_col(self) -> str:
+        return self._col + "count"
+
+    @property
+    def profiles_col(self) -> str:
+        return self._col + "profiles"
+
+    @property
+    def n_users(self) -> int:
+        return len(self.profiles)
+
+    def __str__(self) -> str:
+        return f"Cluster(idx={self.idx} | n_users={self.n_users} | users={self.profiles})"
+    
+    def __repr__(self) -> str:
+        return self.__str__()
+
+    def iter_kw_count(self) -> Generator[Tuple[str, int], None, None]:
+        return ((kw, c) for kw, c in self.keywords.items())
+
+    def kw_count_sort_list(self) -> Tuple[Tuple[str], Tuple[int]]:
+        kw, count = zip(*sorted(self.keywords.items(), key=lambda item: item[1], reverse=True))
+        return {self.kw_col: kw, self.count_col: count}
+
+    def df_cluster(self) -> pd.DataFrame:
+        df = pd.DataFrame(self.kw_count_sort_list())
+        profiles = self.profiles.copy()
+        profiles += [""] * (len(self.keywords) - self.n_users)
+        df.insert(0, self.profiles_col, profiles)
+        return df
+
+    @classmethod
+    def from_subgraph(cls, idx: int, subgraph: ig.Graph) -> KeywordsCluster:
+        keywords = {}
+        for kw in subgraph.vs[KeyCol.KEYWORDS]:
+            keywords_update(keywords, kw)
+        
+        profiles = [(v[KeyCol.NAME], v[KeyCol.FOLLOWERS]) for v in subgraph.vs]
+        profiles = [v[0] for v in sorted(profiles, key=lambda item: item[1], reverse=True)]
+        
+        return KeywordsCluster(
+            keywords = keywords,
+            profiles = profiles,
+            idx = idx
+        )
+
+
+class KWClusters(List[KeywordsCluster]):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+    
+    @classmethod
+    def from_graph_follow(cls, graph_follow: GraphFollows, min_user_per_cluster=1) -> KWClusters:
+        kw_clusters = KWClusters()
+        for idx, subgraph in graph_follow.iter_subgraph(min_user_per_cluster):
+            kw_cluster = KeywordsCluster.from_subgraph(idx, subgraph)
+            kw_clusters.append(kw_cluster)
+        kw_clusters.sort(key=lambda cluster: cluster.n_users, reverse=True)
+        return kw_clusters
+
+    def __str__(self) -> str:
+        return "\n".join((cluster.__str__() for cluster in self))
+    
+    def __repr__(self) -> str:
+        return self.__str__()
+
+
+
+
+
+
+
 T_GraphFollows = TypeVar("T_GraphFollows", bound="GraphFollows")
 
 class GraphFollows:
@@ -36,55 +136,119 @@ class GraphFollows:
             self,
             graph: ig.Graph,
             default_plot_style: GraphPlotStyle,
-            path_folder_out: Path):
+            path_folder_out: Path,
+            wc: WordCloud,
+            date_i: datetime,
+            date_f: datetime
+        ):
         self.graph = graph
+        self._g: Optional[ig.Graph] = None      # Aquí se guardará como caché la copia del grafo pero no dirigido.
         self.default_plot_style = default_plot_style
         self.path_folder_out = path_folder_out
+        self.wc = wc
+        self.date_i: datetime = date_i
+        self.date_f: datetime = date_f
     
-    def path_out(self) -> Path:
-        date_now = datetime.now()
-        path_folder_day = self.path_folder_out / format_date_yyyy_mm_dd(date_now)
-        path_folder_day.mkdir(exist_ok=True)
-        date_full_str = format_date_full(date_now)
-        return path_folder_day / f"graph_follows_{date_full_str}.png"
-
+    @property
+    def format_folder(self) -> str:
+        date_str_from = format_date_yyyy_mm_dd(self.date_i)
+        date_str_to = format_date_yyyy_mm_dd(self.date_f)
+        return f"from_{date_str_from}_to_{date_str_to}"
+    
+    @property
+    def path_folder_range(self) -> Path:
+        return self.path_folder_out / self.format_folder
+    
     @property
     def profiles(self) -> List[str]:
-        return self.graph.vs["name"]
+        return self.graph.vs[KeyCol.NAME]
+    
+    @property
+    def g(self) -> ig.Graph:
+        """ Almacena como caché el grafo no direccionado para obtener subgraphs."""
+        if self._g is None:
+            self._g = self.graph.copy()
+            self._g.to_undirected()
+        return self._g
+
+    def clear_cache(self) -> None:
+        self._g = None
+    
+    def iter_subgraph(self, min_vs=1) -> Generator[Tuple[int, ig.Graph], None, None]:
+        idx = 0
+        for subgraph in self.g.decompose():
+            if len(subgraph.vs) >= min_vs:
+                yield idx, subgraph
+                idx += 1
+
+    @classmethod
+    def get_attributes(cls, users_full_data: UsersFullData, wc: WordCloud) -> dict[str, list]:
+        attributes = {k: [] for k in [KeyCol.NAME, KeyCol.KEYWORDS,
+                                      KeyCol.FOLLOWERS, KeyCol.FOLLOWING]}
+        
+        for user_full in users_full_data.all_users:
+            attributes[KeyCol.NAME].append(user_full.profile)
+            attributes[KeyCol.KEYWORDS].append(tweets2keywords(wc, user_full.tweets_user))
+            attributes[KeyCol.FOLLOWERS].append(user_full.followers)
+            attributes[KeyCol.FOLLOWING].append(user_full.following)
+        return attributes
 
     @classmethod
     def from_users_db(
             cls: Type[T_GraphFollows],
             db_tw: DBTwitter,
-            users: UserList,
+            users_full_data: UsersFullData,
+            date_i: datetime,
+            date_f: datetime,
             default_plot_style: GraphPlotStyle = None
         ) -> T_GraphFollows:
-        follow_list = db_tw.get_follow_list(users)
+        follow_list = db_tw.get_follow_list(users_full_data)
+        wc = WordCloud(stopwords=get_blacklist_words(db_tw.path_blacklist_words))
         
         graph = ig.Graph(directed=True)
         graph.add_vertices(
-            n = len(users),
-            attributes = {"name": [user.profile for user in users]}
+            n = len(users_full_data),
+            attributes = cls.get_attributes(users_full_data, wc)
         )
         graph.add_edges(follow_list.list_of_tuples)
-        if default_plot_style is None: default_plot_style=GraphPlotStyle()
+
+        if default_plot_style is None:
+            default_plot_style = GraphPlotStyle()
+        
         return cls(
             graph = graph,
             default_plot_style = default_plot_style,
-            path_folder_out = db_tw.path_graph_follow_folder
+            path_folder_out = db_tw.path_graph_follow_folder,
+            wc = wc,
+            date_i = date_i,
+            date_f = date_f
         )
 
-    def plot(self, plot_style: GraphPlotStyle = None) -> CairoPlot:
+    def choice_plot_name(self) -> Path:
+        i, flag = 0, True
+        while flag:
+            p = self.path_folder_range / f"graph_follows_{i}.png"
+            if not p.exists():
+                flag = False
+            i += 1
+        return p
+
+    def path_out(self) -> Path:
+        self.path_folder_range.mkdir(exist_ok=True)
+        return self.choice_plot_name()
+
+    def plot(self, with_save: bool = False, plot_style: GraphPlotStyle = None) -> CairoPlot:
         if plot_style is None:
             plot_style = self.default_plot_style.model_dump()
         else:
             plot_style = plot_style.model_dump()
         
-        plot_style["vertex_label"] = self.graph.vs["name"]
+        plot_style["vertex_label"] = self.graph.vs[KeyCol.NAME]
         plot_style["layout"] = self.graph.layout("fr")
         cairo_plot: CairoPlot = ig.plot(self.graph, **plot_style)
         
-        path_out = self.path_out()
-        cairo_plot.save(path_out)
+        if with_save:
+            path_out = self.path_out()
+            cairo_plot.save(path_out)
 
         return cairo_plot

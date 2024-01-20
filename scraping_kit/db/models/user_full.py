@@ -25,6 +25,15 @@ class UserFullData(BaseModel):
     def profile(self) -> str:
         return self.user.profile
 
+    @property
+    def following(self) -> int:
+        return self.user.following
+
+    @property
+    def followers(self) -> int:
+        return self.user.followers
+
+
 class UsersFullData(BaseModel):
     all_users: List[UserFullData]
 

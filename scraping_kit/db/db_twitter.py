@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Type, Dict, List, Tuple, Generator, Optional
+from typing import Type, Dict, List, Tuple, Generator, Optional, Iterable
 from datetime import datetime, timezone
 from pathlib import Path
 from requests import Response, JSONDecodeError
@@ -510,9 +510,9 @@ class DBTwitter(DBMongoBase):
         else:
             return None
 
-    def get_users_full_data(self, list_profiles: List[str], date_i: datetime, date_f: datetime) -> UsersFullData:
+    def get_users_full_data(self, profiles: Iterable[str], date_i: datetime, date_f: datetime) -> UsersFullData:
         all_users = []
-        for profile in list_profiles:
+        for profile in profiles:
             user_full_data = self.get_user_full_data(profile, date_i, date_f)
             if user_full_data is not None:
                 all_users.append(user_full_data)
@@ -552,8 +552,11 @@ class DBTwitter(DBMongoBase):
         else:
             raise Exception(f"Bad requests | source:{req_args.source} | target:{req_args.target}")
 
-    def get_follow_list(self, users: UserList) -> FollowList:
-        users_profile = {user.profile: None for user in users}
+    def get_follow_list(self, users: UserList | UsersFullData) -> FollowList:
+        if isinstance(users, UserList):
+            users_profile = {user.profile: None for user in users}
+        elif isinstance(users, UsersFullData):
+            users_profile = {user.profile: None for user in users.all_users}
 
         follows = FollowList(follows=[])
         for follow_doc in self.coll.follows.find({"is_follow": True}):

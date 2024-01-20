@@ -22,6 +22,14 @@ class User(BaseModel):
     sub_count: int          # Este es el que importa.
     id: str
 
+    @property
+    def following(self) -> int:
+        return self.friends
+
+    @property
+    def followers(self) -> int:
+        return self.sub_count
+
 
 class UserList(BaseModel):
     users: List[User]
@@ -34,6 +42,9 @@ class UserList(BaseModel):
 
     def __iter__(self):
         return iter(self.users)
+
+    def iter_profiles(self) -> Generator[str, None, None]:
+        return (user.profile for user in self.users)
 
     def sort(self, reverse=True) -> None:
         self.users.sort(key=lambda user: user.sub_count, reverse=reverse)
