@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Type, TypeVar, List, Tuple, Generator, Optional
+from typing import Type, TypeVar, List, Tuple, Generator, Optional, Literal
 from datetime import datetime
 from pathlib import Path
 
