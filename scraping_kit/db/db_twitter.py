@@ -29,7 +29,6 @@ from scraping_kit.db.models.topics import Topic
 from scraping_kit.db.models.tweet_user import TweetUser
 from twitter45.params import ArgsSearch, ArgsUserTimeline, ArgsCheckFollow
 
-
 def _get_accumulated_name(date_from: datetime, date_to: datetime) -> str:
     accumulated_name = "trends_"
     accumulated_name += f"from_{format_date_yyyy_mm_dd(date_from)}_"
@@ -514,7 +513,28 @@ class DBTwitter(DBMongoBase):
         else:
             return None
 
-    def get_users_full_data(self, profiles: Iterable[str], date_i: datetime, date_f: datetime) -> UsersFullData:
+    def get_bests_users_full_data(
+            self,
+            profiles: Iterable[str],
+            date_i: datetime,
+            date_f: datetime,
+            n_bests: int
+        ) -> UsersFullData:
+        users = self.get_user_list(profiles)
+        users.keep_bests(n_bests)
+        users = self.get_users_full_data(
+            profiles = users.iter_profiles(),
+            date_i = date_i,
+            date_f = date_f
+        )
+        return users
+
+    def get_users_full_data(
+            self,
+            profiles: Iterable[str],
+            date_i: datetime,
+            date_f: datetime
+        ) -> UsersFullData:
         all_users = []
         for profile in profiles:
             user_full_data = self.get_user_full_data(profile, date_i, date_f)
