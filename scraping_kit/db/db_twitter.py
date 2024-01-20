@@ -611,3 +611,49 @@ class DBTwitter(DBMongoBase):
                 print(txt_iter)
 
 
+    def collect_and_get_users(
+            self,
+            profiles: List[str],
+            bots: BotList,
+            date_i: datetime,
+            date_f: datetime,
+            n_bests_users: int = 30,
+            days_to_update_tweets: int = 14,
+            days_to_update_follow_link: int = 120,
+            with_update: bool = False,
+            max_workers: int = 40,
+        ) -> UsersFullData:
+        assert date_i < date_f, "The end date must be greater."
+
+        if with_update:         # Collect the user's latest tweets.
+            self.collect_usertimeline(
+                profiles,
+                bots = bots,
+                max_workers = max_workers,
+                days_to_update = days_to_update_tweets
+            )
+        else:
+            print("Users were not updated, set `with_update=True`.")
+        
+        users = self.get_bests_users_full_data(
+            profiles = profiles,
+            date_i = date_i,
+            date_f = date_f,
+            n_bests = n_bests_users
+        )
+        
+        if with_update:         # Collect the links between the chosen users.
+            self.collect_follows(
+                users,
+                bots,
+                days_to_update_follow_link,
+                max_workers
+            )
+        else:
+            print("Follows were not updated, set `with_update=True`.")
+        
+        return users
+
+    def collect_trends_today(self, bots: BotList, woeid: str = None) -> None:
+        from twitter_trends.functional import requests_and_process
+        requests_and_process(self, bots.random_bot_2(), woeid)   # FIXME: Esta función tendría que ser un método.
