@@ -243,7 +243,7 @@ class GraphFollows:
         return self.choice_plot_name()
 
     def choice_color(self, arrows_in: int, colors_ranges: List[Tuple[int, str]]) -> str:
-        for i in range(len(colors_ranges[-1])):
+        for i in range(len(colors_ranges) - 1):
             j = i+1
             if colors_ranges[i][0] <= arrows_in < colors_ranges[j][0]:
                 return colors_ranges[i][1]
