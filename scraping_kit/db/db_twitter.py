@@ -12,7 +12,7 @@ from pymongo.results import InsertOneResult
 from pymongo.database import Database
 from pymongo.collection import Collection
 
-from scraping_kit.db.models.user_full import UserFullData, UsersFullData
+from scraping_kit.db.models.user_full import UserFullData, UsersFullData, TopicUser
 from scraping_kit.db.filters import filter_profile, filter_tweet_user, filter_follow
 from scraping_kit.dl import instance_classifier
 from scraping_kit.utils import iter_dates_by_range, date_one_day, date_delta, format_date_yyyy_mm_dd, format_yyyy_mm_dd
@@ -25,7 +25,7 @@ from scraping_kit.db.models.cursor import Cursor
 from scraping_kit.db.models.users import User, UserSuspended, UserList
 from scraping_kit.db.models.trends import Trends
 from scraping_kit.db.models.search import Search, Tweet
-from scraping_kit.db.models.topics import Topic
+from scraping_kit.db.models.topics import Topic, get_topic_classes
 from scraping_kit.db.models.tweet_user import TweetUser
 from twitter45.params import ArgsSearch, ArgsUserTimeline, ArgsCheckFollow
 
@@ -126,6 +126,7 @@ class DBTwitterColl:
         self.raw: Collection = db.get_collection("raw")
         self.trends: Collection = db.get_collection("trends")
         self.topics: Collection = db.get_collection("topics")
+        self.topics_user: Collection = db.get_collection("topics_user")
         self.user: Collection = db.get_collection("user")
         self.user_suspended: Collection = db.get_collection("user_suspended")
         self.tweet: Collection = db.get_collection("tweet")     # Este es el tweet del Search.
@@ -227,6 +228,7 @@ class DBTwitter(DBMongoBase):
         self.path_backup_db = self.path_data / "backup_db"
         self.path_blacklist_words = self.path_data / "blacklist_words.xlsx"
         self.path_acc = self.path_data / "acc.json"
+        self.path_topic_classes = path_data / "CLASSES_TWITTER.json"
         self.__init_db()
     
     def __init_db(self) -> None:
@@ -536,7 +538,12 @@ class DBTwitter(DBMongoBase):
                 # FIXME: Ver que hacer en caso que no encuentre nada.
                 if date_i <= tweet_user.create_at_datetime and tweet_user.create_at_datetime <= date_f:
                     tweets_user.append(tweet_user)
-            return UserFullData(user=user, tweets_user=tweets_user)
+            topics_user = self.get_topic_user(user)
+            return UserFullData(
+                user = user,
+                tweets_user = tweets_user,
+                topics_user = topics_user
+            )
         else:
             return None
 
@@ -637,6 +644,14 @@ class DBTwitter(DBMongoBase):
                     txt_iter += " | Existing link - Skip."
                 print(txt_iter)
 
+    def get_topic_user(self, user: User | UserFullData) -> TopicUser:
+        topics_user_doc = self.coll.topics_user.find_one({"profile": user.profile})
+        if topics_user_doc is not None:
+            topic_user = TopicUser(**topics_user_doc)
+        else:
+            topic_user = TopicUser(profile=user.profile, creation_date=datetime.now())
+            self.coll.topics_user.insert_one(topic_user.model_dump())
+        return topic_user
 
     def collect_and_get_users(
             self,
@@ -681,6 +696,7 @@ class DBTwitter(DBMongoBase):
         
         return users
 
-    def collect_trends_today(self, bots: BotList, woeid: str = None) -> None:
+    def collect_trends_today(self, bots: BotList, woeid: str = None, max_workers=10) -> None:
         from twitter_trends.functional import requests_and_process
         requests_and_process(self, bots.random_bot_2(), woeid)   # FIXME: Esta función tendría que ser un método.
+        failed_requests = self.collect_searchs_topics(bots, max_workers)
