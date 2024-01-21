@@ -347,21 +347,17 @@ class DBTwitter(DBMongoBase):
             n_text_context: int = 10,
             nro_process: int = None) -> None:
         len_trends = len(trend_names)
-        #dts = []
+
         classifier = instance_classifier()
         for i, trend_name in enumerate(trend_names, 1):
-            #t_i = time.time()
             search = Search(**self.coll.search.find_one({"query": trend_name}))
             topic, texts_joined = Topic.create_from_search(search, classifier, topics_1, n_text_context)
             topic.calc_topics_2(topics_1_to_topics_2, texts_joined, classifier, n_text_context)
             self.coll.save_topic(topic)
             
-            #dts.append(time.time() - t_i)
-            #n_remaining = len_trends - i
             print(" | ".join([
                 f"process {nro_process}",
                 f"{i}/{len_trends}",
-                #f"time_stimated={int(n_remaining * np.mean(dts)) / 60} min",
                 f"trend_name: {topic.query}",
                 f"topics_1: {topic.topics_1.labels[:2]}",
                 f"topics_2: {topic.topics_2.labels[:2]}"
