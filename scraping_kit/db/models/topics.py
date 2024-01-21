@@ -127,7 +127,7 @@ class TopicUser(BaseModel):
     def create_from_user_full(
             cls,
             user_full_data: UserFullData,
-            classifier: ZeroShotClassificationPipeline,
+            classifier,
             classes: List[str],
             n_first_texts: int = 5,
             multi_label: bool = False
