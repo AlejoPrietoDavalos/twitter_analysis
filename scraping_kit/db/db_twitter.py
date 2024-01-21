@@ -259,7 +259,8 @@ class DBTwitter(DBMongoBase):
             self,
             date_from: datetime,
             date_to: datetime,
-            with_save: bool = True) -> pd.DataFrame:
+            with_save: bool = True
+        ) -> pd.DataFrame | None:
         dates_empty: List[datetime] = []
         dates_accumulated: List[datetime] = []
         df_accumulated = []
@@ -271,12 +272,15 @@ class DBTwitter(DBMongoBase):
             else:
                 dates_empty.append(date["$gte"])
         
-        if len(dates_empty)!=0:
+        if len(df_accumulated) == 0:
+            print("~~~~~ No Data in date range. ~~~~~")
+            return None     # Si esta vacío retorna.
+        elif len(dates_empty) != 0:
             dates_empty = [f"{str(d.day).zfill(2)}_{str(d.month).zfill(2)}" for d in dates_empty]
             txt_no_data = "Days without data: " + " ~ ".join(dates_empty)
             print(txt_no_data)
 
-
+        
         df_accumulated = pd.concat(df_accumulated)
         def _consolidate_domain_context(group):
             DELIMITER = " | "
