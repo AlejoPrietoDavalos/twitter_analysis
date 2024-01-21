@@ -43,13 +43,15 @@ class GraphPlotStyle(BaseModel):
 
 
 class KeywordsCluster:
-    def __init__(self, keywords: T_Keywords, profiles: list, idx: int):
+    def __init__(self, keywords: T_Keywords, profiles: list, idx: int = None):
         self.keywords = keywords
         self.profiles = profiles
         self.idx = idx
     
     @property
     def _col(self) -> str:
+        if self.idx is None:
+            return ""
         return f"cluster {self.idx}: "
 
     @property
@@ -78,7 +80,12 @@ class KeywordsCluster:
         return ((kw, c) for kw, c in self.keywords.items())
 
     def kw_count_sort_list(self) -> Tuple[Tuple[str], Tuple[int]]:
-        kw, count = zip(*sorted(self.keywords.items(), key=lambda item: item[1], reverse=True))
+        if len(self.keywords) != 0:
+            l = list(self.keywords.items())
+            l.sort(key=lambda item: item[1], reverse=True)
+            kw, count = zip(*l)
+        else:
+            kw, count = [], []
         return {self.kw_col: kw, self.count_col: count}
 
     def df_cluster(self) -> pd.DataFrame:
@@ -105,17 +112,31 @@ class KeywordsCluster:
 
 
 class KWClusters(List[KeywordsCluster]):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, path_folder_keywords: Path, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.path_folder_keywords = path_folder_keywords
     
+    @property
+    def path_folder_keywords_cluster(self) -> Path:
+        path_folder_keywords = self.path_folder_keywords / "clusters"
+        path_folder_keywords.mkdir(exist_ok=True)
+        return path_folder_keywords
+
     @classmethod
-    def from_graph_follow(cls, graph_follow: GraphFollows, min_user_per_cluster=1) -> KWClusters:
-        kw_clusters = KWClusters()
-        for idx, subgraph in graph_follow.iter_subgraph(min_user_per_cluster):
+    def from_graph_follow(cls, graph_follow: GraphFollows, min_users_per_cluster=2) -> KWClusters:
+        assert min_users_per_cluster >= 2, "The minimum number users per clusters must be 2."
+        kw_clusters = KWClusters(graph_follow.path_folder_keywords)
+        for idx, subgraph in graph_follow.iter_subgraph(min_users_per_cluster):
             kw_cluster = KeywordsCluster.from_subgraph(idx, subgraph)
             kw_clusters.append(kw_cluster)
         kw_clusters.sort(key=lambda cluster: cluster.n_users, reverse=True)
         return kw_clusters
+
+    def save_keywords_clusters(self):
+        for kw_cluster in self:
+            path_cluster = self.path_folder_keywords_cluster / f"cluster_{kw_cluster.idx}.csv"
+            df_cluster = kw_cluster.df_cluster()
+            df_cluster.to_csv(path_cluster)
 
     def __str__(self) -> str:
         return "\n".join((cluster.__str__() for cluster in self))
@@ -160,6 +181,18 @@ class GraphFollows:
         return self.path_folder_out / self.format_folder
     
     @property
+    def path_folder_keywords(self) -> Path:
+        path_folder_keywords = self.path_folder_range / "keywords"
+        path_folder_keywords.mkdir(exist_ok=True)
+        return path_folder_keywords
+
+    @property
+    def path_folder_keywords_users(self) -> Path:
+        path_folder_keywords_users = self.path_folder_keywords / "users"
+        path_folder_keywords_users.mkdir(exist_ok=True)
+        return path_folder_keywords_users
+
+    @property
     def profiles(self) -> List[str]:
         return self.graph.vs[KeyCol.NAME]
     
@@ -170,6 +203,14 @@ class GraphFollows:
             self._g = self.graph.copy()
             self._g.to_undirected()
         return self._g
+
+    def save_keywords_users(self) -> None:
+        for v in self.graph.vs:
+            name = v[KeyCol.NAME]
+            keywords = v[KeyCol.KEYWORDS]
+            if len(keywords) > 0:
+                df_kw_user = KeywordsCluster(keywords, [name], None).df_cluster()
+                df_kw_user.to_csv(self.path_folder_keywords_users / f"{name}.csv")
 
     def find_name(self, name: str):
         return self.graph.vs.find(name=name)
@@ -183,6 +224,7 @@ class GraphFollows:
             if len(subgraph.vs) >= min_vs:
                 yield idx, subgraph
                 idx += 1
+        self.clear_cache()
 
     @classmethod
     def get_attributes(cls, users_full_data: UsersFullData, wc: WordCloud) -> dict[str, list]:
