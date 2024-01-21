@@ -24,7 +24,7 @@ from scraping_kit.db.models.follow import Follow, FollowList
 from scraping_kit.db.models.cursor import Cursor
 from scraping_kit.db.models.users import User, UserSuspended, UserList
 from scraping_kit.db.models.trends import Trends
-from scraping_kit.db.models.search import Search
+from scraping_kit.db.models.search import Search, Tweet
 from scraping_kit.db.models.topics import Topic
 from scraping_kit.db.models.tweet_user import TweetUser
 from twitter45.params import ArgsSearch, ArgsUserTimeline, ArgsCheckFollow
@@ -156,22 +156,49 @@ class DBTwitterColl:
             max_workers: int = 1
         ) -> List[ArgsSearch]:
         """ Recolecta los searchs para cada trend, y retorna los requests fallidos."""
+        def clean_invalid_timeline(search_json: dict) -> List[dict]:
+            timeline = []
+            for t in search_json["timeline"]:
+                try:
+                    t = Tweet(**t)
+                    timeline.append(t.model_dump())
+                except:
+                    pass
+            return timeline
+        
         failed_requests = []
         with ThreadPoolExecutor(max_workers=max_workers) as pool:
             iter_futures = (pool.submit(get_tweets_search, random.choice(bots), req_args)
                             for req_args in iter_args_search(trend_names_uniques))
             
-            for future in as_completed(iter_futures):
+            len_trend_names = len(trend_names_uniques)
+            for idx, future in enumerate(as_completed(iter_futures), 1):
                 search = future.result()
                 response, creation_date, req_args = search
                 if response.status_code != 200:
                     failed_requests.append(req_args)
                 else:
                     search_json = response.json()
+                    timeline = clean_invalid_timeline(search_json)
+
+                    i = 1
+                    max_tries = 3
+                    while (len(timeline) == 0) and (i <= max_tries):
+                        print(f"Fail collect - Attempt: 1 | query={req_args.params.query}")
+                        search = get_tweets_search(bots.random_bot_2(), req_args)
+                        response, creation_date, req_args = search
+                        if response.status_code != 200:
+                            i += 1
+                            continue
+                        search_json = response.json()
+                        timeline = clean_invalid_timeline(search_json)
+                        i += 1
+                    
+                    search_json["timeline"] = timeline
                     search_json["query"] = req_args.params.query
                     search_json["creation_date"] = creation_date
                     self.search.insert_one(search_json)
-        
+                print(f"{idx}/{len_trend_names} - query={req_args.params.query}")
         n_failed = len(failed_requests)
         if n_failed == 0:
             print("--> All downloads were completed without problems.")
