@@ -11,6 +11,13 @@ from abc import ABC, abstractclassmethod
 from pydantic import BaseModel, Field
 
 
+class ScrapeInfo:
+    """ TODO: Establecer el número de solicitudes hechas,
+    y que tire advertencias según estés realizando demaciadas solicitudes o no.
+    """
+    pass
+
+
 class Headers(ABC):
     @abstractclassmethod
     def get_header(cls, bot_scraper: BotScraper) -> dict:
