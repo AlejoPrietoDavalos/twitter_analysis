@@ -1,5 +1,19 @@
-from typing import Generator, Dict, List
+from typing import Generator, Dict, List, Any
 from datetime import datetime, timedelta, timezone
+
+
+def split_list(list_complety: List[Any], n_fragments: int) -> List[List[Any]]:
+    if n_fragments <= 0:
+        raise ValueError("El número de fragmentos debe ser mayor que cero.")
+
+    fragment = len(list_complety) // n_fragments
+    rest = len(list_complety) % n_fragments
+
+    list_fragment = []
+    for i in range(n_fragments):
+        frag = list_complety[i * fragment + min(i, rest):(i + 1) * fragment + min(i + 1, rest)]
+        list_fragment.append(frag)
+    return list_fragment
 
 
 def date_delta(date_i: datetime, date_f: datetime) -> Dict[str, datetime]:

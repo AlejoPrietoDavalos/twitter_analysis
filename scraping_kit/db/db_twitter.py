@@ -678,6 +678,7 @@ class DBTwitter(DBMongoBase):
         else:
             print("Users were not updated, set `with_update=True`.")
         
+        # Obtiene los datos full de estos usuarios.
         users = self.get_bests_users_full_data(
             profiles = profiles,
             date_i = date_i,

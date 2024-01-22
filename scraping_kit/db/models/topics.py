@@ -1,7 +1,7 @@
 from __future__ import annotations
 from pathlib import Path
 import json
-from typing import List, Tuple, Optional, Literal
+from typing import List, Tuple, Literal
 from datetime import datetime
 
 from pydantic import BaseModel
@@ -9,7 +9,6 @@ import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
 
 from scraping_kit.db.models.search import Search
-from scraping_kit.db.models.user_full import UserFullData
 
 
 def get_topic_classes(path_topic_classes: Path) -> Tuple[dict, list]:
@@ -116,32 +115,3 @@ class Topic(BaseModel):
         return ax
 
 
-
-class TopicUser(BaseModel):
-    profile: str
-    topics_1: TopicClasses | None = None
-    topics_2: TopicClasses | None = None
-    creation_date: datetime
-
-    @classmethod
-    def create_from_user_full(
-            cls,
-            user_full_data: UserFullData,
-            classifier,
-            classes: List[str],
-            n_first_texts: int = 5,
-            multi_label: bool = False
-        ) -> Tuple[TopicUser, str]:
-        texts_joined = "\n".join(user_full_data.get_texts(n_first_texts))
-        if texts_joined.strip() != "":
-            topic_classes = classifier(texts_joined, candidate_labels=classes, multi_label=multi_label)
-            topic_classes["n_first_texts"] = n_first_texts
-            topic_classes.pop("sequence")
-        else:
-            topic_classes = None
-        topic = TopicUser(
-            query = user_full_data.profile,
-            topics_1 = topic_classes,
-            creation_date = datetime.now()
-        )
-        return topic, texts_joined
