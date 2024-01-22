@@ -1,13 +1,47 @@
+from __future__ import annotations
 from typing import List, Generator, Tuple
+from datetime import datetime
 
 from pydantic import BaseModel
+import pandas as pd
 
 from scraping_kit.db.models.users import User
 from scraping_kit.db.models.tweet_user import TweetUser
+from scraping_kit.const import TopicsNames
+
+
+class TopicUserClasses(BaseModel):
+    labels: List[str]
+    scores: List[float]
+    n_first_texts: int
+
+    @classmethod
+    def from_texts(
+        cls,
+        texts_joined: str,
+        classifier,
+        classes: List[str],
+        n_first_texts: int
+    ) -> TopicUserClasses:
+        topic_classes = classifier(texts_joined, candidate_labels=classes, multi_label=False)
+        topic_classes["n_first_texts"] = n_first_texts
+        topic_classes.pop("sequence")
+        return TopicUserClasses(**topic_classes)
+
+
+class TopicUser(BaseModel):
+    profile: str
+    topics_1: TopicUserClasses | None = None
+    topics_2: TopicUserClasses | None = None
+    creation_date: datetime
+
+
+
 
 class UserFullData(BaseModel):
     user: User
     tweets_user: List[TweetUser]
+    topics_user: TopicUser
 
     def sort_tweets(self, reverse=True) -> None:
         self.tweets_user.sort(key=lambda t: t.create_at_datetime, reverse=reverse)
@@ -53,3 +87,26 @@ class UsersFullData(BaseModel):
             for j, user_j in enumerate(self.all_users):
                 if i != j:
                     yield user_i.profile, user_j.profile
+    
+    def df_topics_users(self) -> pd.DataFrame:
+        data = {k: [] for k in ["profile",
+                                TopicsNames.TOPIC_1_A, TopicsNames.TOPIC_1_B,
+                                TopicsNames.TOPIC_2_A, TopicsNames.TOPIC_2_B]}
+        for user in self.all_users:
+            data["profile"].append(user.profile)
+            t1 = user.topics_user.topics_1
+            t2 = user.topics_user.topics_2
+            if t1 is not None:
+                topic_1_a, topic_1_b = t1.labels[:2]
+            else:
+                topic_1_a, topic_1_b = "", ""
+            if t2 is not None:
+                topic_2_a, topic_2_b = t2.labels[:2]
+            else:
+                topic_2_a, topic_2_b = "", ""
+            data[TopicsNames.TOPIC_1_A].append(topic_1_a)
+            data[TopicsNames.TOPIC_1_B].append(topic_1_b)
+            data[TopicsNames.TOPIC_2_A].append(topic_2_a)
+            data[TopicsNames.TOPIC_2_B].append(topic_2_b)
+        df = pd.DataFrame(data)
+        return df

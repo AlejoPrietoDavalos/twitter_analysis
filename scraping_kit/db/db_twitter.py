@@ -12,6 +12,7 @@ from pymongo.results import InsertOneResult
 from pymongo.database import Database
 from pymongo.collection import Collection
 
+from scraping_kit.const import TopicsNames
 from scraping_kit.db.models.user_full import UserFullData, UsersFullData, TopicUser
 from scraping_kit.db.filters import filter_profile, filter_tweet_user, filter_follow
 from scraping_kit.dl import instance_classifier
@@ -297,10 +298,10 @@ class DBTwitter(DBMongoBase):
 
 
         # Se agregan los topics.
-        df_accumulated["topics_1_a"] = ""
-        df_accumulated["topics_1_b"] = ""
-        df_accumulated["topics_2_a"] = ""
-        df_accumulated["topics_2_b"] = ""
+        df_accumulated[TopicsNames.TOPIC_1_A] = ""
+        df_accumulated[TopicsNames.TOPIC_1_B] = ""
+        df_accumulated[TopicsNames.TOPIC_2_A] = ""
+        df_accumulated[TopicsNames.TOPIC_2_B] = ""
         for i, row in df_accumulated.iterrows():
             name = row["name"]
             topic_doc = self.coll.topics.find_one({"query": name})
@@ -308,12 +309,12 @@ class DBTwitter(DBMongoBase):
                 topic = Topic(**topic_doc)
                 #topics_concat = " | ".join(topic.topics_1.labels[:2])  # Obtengo los primeros 2.
                 topics_1_a, topics_1_b = topic.topics_1.labels[:2]
-                df_accumulated.loc[i, "topics_1_a"] = topics_1_a
-                df_accumulated.loc[i, "topics_1_b"] = topics_1_b
+                df_accumulated.loc[i, TopicsNames.TOPIC_1_A] = topics_1_a
+                df_accumulated.loc[i, TopicsNames.TOPIC_1_B] = topics_1_b
                 
                 topics_2_a, topics_2_b = topic.topics_2.labels[:2]
-                df_accumulated.loc[i, "topics_2_a"] = topics_2_a
-                df_accumulated.loc[i, "topics_2_b"] = topics_2_b
+                df_accumulated.loc[i, TopicsNames.TOPIC_2_A] = topics_2_a
+                df_accumulated.loc[i, TopicsNames.TOPIC_2_B] = topics_2_b
         if with_save:
             date_from, date_to = dates_accumulated[0], dates_accumulated[-1]
 
