@@ -6,7 +6,7 @@ import os
 
 import pandas as pd
 
-from scraping_kit.utils import format_yyyy_xx
+from scraping_kit.utils import format_yyyy_xx, get_datetime_now
 from scraping_kit.db.db_twitter import DBTwitter
 from scraping_kit.bot_scraper import BotList
 
@@ -35,7 +35,7 @@ def load_profiles(path_data: Path = None) -> List[str]:
     return profiles
 
 def save_db(db_name: str = "scrape_tw", folder_backup: str = "data/backup_db") -> None:
-    date_now = datetime.now()
+    date_now = get_datetime_now()
     date_now = format_yyyy_xx(*date_now.timetuple()[:6])
     path_out_db = f"{folder_backup}/date_{date_now}"
     process = subprocess.run(

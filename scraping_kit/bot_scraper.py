@@ -10,6 +10,7 @@ from abc import ABC, abstractclassmethod
 
 from pydantic import BaseModel, Field
 
+from scraping_kit.utils import get_datetime_now
 
 class ScrapeInfo:
     """ TODO: Establecer el número de solicitudes hechas,
@@ -75,7 +76,7 @@ class BotScraper(BaseModel):
     
     def get_response(self, req_args: Type[ReqArgs]) -> Tuple[Response, datetime]:
         response = requests.request(**req_args.response_dump(self))
-        creation_date = datetime.now()
+        creation_date = get_datetime_now()
         return response, creation_date
 
 

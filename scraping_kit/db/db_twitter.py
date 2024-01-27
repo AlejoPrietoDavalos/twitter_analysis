@@ -1,6 +1,6 @@
 from __future__ import annotations
 from typing import Type, Dict, List, Tuple, Generator, Optional, Iterable
-from datetime import datetime, timezone
+from datetime import datetime
 from pathlib import Path
 from requests import Response, JSONDecodeError
 import random
@@ -16,7 +16,7 @@ from scraping_kit.const import TopicsNames
 from scraping_kit.db.models.user_full import UserFullData, UsersFullData, TopicUser
 from scraping_kit.db.filters import filter_profile, filter_tweet_user, filter_follow
 from scraping_kit.dl import instance_classifier
-from scraping_kit.utils import iter_dates_by_range, date_one_day, date_delta, format_date_yyyy_mm_dd, format_yyyy_mm_dd
+from scraping_kit.utils import get_datetime_now, iter_dates_by_range, date_one_day, format_date_yyyy_mm_dd, format_yyyy_mm_dd
 from scraping_kit.db.leak import get_trend_names_uniques
 from scraping_kit.db.base import DBMongoBase, HOST_DEFAULT
 from scraping_kit.bot_scraper import BotScraper, ReqArgs, BotList
@@ -81,7 +81,7 @@ def wrap_get_user_timeline(
         return get_user_timeline(bot, req_args)
     else:
         cursor = Cursor(**cursor_doc)
-        dt = datetime.now() - cursor.creation_date
+        dt = get_datetime_now() - cursor.creation_date
         if abs(dt.days) >= days_update:
             return get_user_timeline(bot, req_args)
         else:
@@ -113,7 +113,7 @@ def wrap_check_follow(
         is_download = True
     else:
         follow = Follow(**follow_doc)
-        dt = datetime.now() - follow.creation_date
+        dt = get_datetime_now() - follow.creation_date
         if abs(dt.days) > days_to_update:
             response, creation_date, req_args = get_check_follow(bot, req_args)
             db_tw.process_check_follow(response, creation_date, req_args)
@@ -650,7 +650,7 @@ class DBTwitter(DBMongoBase):
         if topics_user_doc is not None:
             topic_user = TopicUser(**topics_user_doc)
         else:
-            topic_user = TopicUser(profile=user.profile, creation_date=datetime.now())
+            topic_user = TopicUser(profile=user.profile, creation_date=get_datetime_now())
             self.coll.topics_user.insert_one(topic_user.model_dump())
         return topic_user
 

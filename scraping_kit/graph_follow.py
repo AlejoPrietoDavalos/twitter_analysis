@@ -11,8 +11,7 @@ from wordcloud import WordCloud
 
 from scraping_kit.db.db_twitter import DBTwitter
 from scraping_kit.db.models.user_full import UsersFullData
-from scraping_kit.db.models.users import UserList
-from scraping_kit.utils import format_date_full, format_date_yyyy_mm_dd
+from scraping_kit.utils import format_date_yyyy_mm_dd
 from scraping_kit.keywords import (
     T_Keywords, KeyCol, get_blacklist_words, tweets2keywords, keywords_update
 )

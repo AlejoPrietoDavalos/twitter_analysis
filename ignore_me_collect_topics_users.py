@@ -6,7 +6,7 @@ import multiprocessing
 import sys
 
 from scraping_kit.dl import instance_classifier
-from scraping_kit.utils import split_list
+from scraping_kit.utils import split_list, get_datetime_now
 from scraping_kit.utils_loader import load_db_and_bots, load_profiles
 from scraping_kit.db.db_twitter import DBTwitter
 from scraping_kit.db.models.user_full import TopicUser, TopicUserClasses
@@ -25,12 +25,12 @@ def task_users(profiles: List[str], ctx: int, nro_process: int):
     topics_1_to_topics_2, topics_1 = get_topic_classes(db_tw.path_topic_classes)
     
     classifier = instance_classifier()
-    date_now = datetime.now(tz=timezone.utc).replace()
+    date_now = get_datetime_now().replace()
     date_i = date_now - timedelta(days=14)
     date_i = date_i
     for profile in profiles:
         user_full = db_tw.get_user_full_data(profile, date_i, date_now)
-        topic_user = user_full.topics_user
+        topic_user: TopicUser = user_full.topics_user
         topic_user.creation_date = topic_user.creation_date.replace(tzinfo=timezone.utc)
         dt = date_now - topic_user.creation_date
         dt = abs(dt.days)

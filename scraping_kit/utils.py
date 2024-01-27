@@ -2,6 +2,12 @@ from typing import Generator, Dict, List, Any
 from datetime import datetime, timedelta, timezone
 
 
+def get_datetime(year: int, month: int, day: int) -> datetime:
+    return datetime(year=year, month=month, day=day, tzinfo=timezone.utc)
+
+def get_datetime_now() -> datetime:
+    return datetime.now(tz=timezone.utc)
+
 def split_list(list_complety: List[Any], n_fragments: int) -> List[List[Any]]:
     if n_fragments <= 0:
         raise ValueError("El número de fragmentos debe ser mayor que cero.")
@@ -21,7 +27,7 @@ def date_delta(date_i: datetime, date_f: datetime) -> Dict[str, datetime]:
 
 
 def date_one_day(year: int, month: int, day: int) -> Dict[str, datetime]:
-    date_i = datetime(year, month, day, tzinfo=timezone.utc)
+    date_i = get_datetime(year=year, month=month, day=day)
     date_f = date_i + timedelta(days=1)
     return date_delta(date_i=date_i, date_f=date_f)
 
