@@ -54,10 +54,6 @@ class Search(BaseModel):
             return t.replies + t.retweets + t.favorites + views
         self.timeline.sort(key=_sort_metric, reverse=True)
 
-    def get_texts(self, n_first_texts: int = None) -> List[str]:
+    def get_texts(self) -> List[str]:
         self.sort_tweets()
-        texts = []
-        for tweet in self.iter_tweets():
-            texts.append(tweet.text)
-        
-        return texts if n_first_texts is None else texts[:n_first_texts]
+        return [tweet.text for tweet in self.iter_tweets()]
