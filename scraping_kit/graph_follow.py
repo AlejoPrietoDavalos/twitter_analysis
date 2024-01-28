@@ -13,9 +13,9 @@ from scraping_kit.db.db_twitter import DBTwitter
 from scraping_kit.db.models.user_full import UsersFullData
 from scraping_kit.utils import format_date_yyyy_mm_dd
 from scraping_kit.keywords import (
-    T_Keywords, KeyCol, get_blacklist_words, tweets2keywords, keywords_update
+    T_Keywords, KeyCol, get_blacklist_words,
+    tweets2keywords, texts2keywords, keywords_update
 )
-
 
 class GraphPlotStyle(BaseModel):
     bbox: Tuple[int, int] = (800, 800)
@@ -192,6 +192,12 @@ class GraphFollows:
         return path_folder_keywords_users
 
     @property
+    def path_folder_keywords_all_users_list(self) -> Path:
+        path_folder_keywords_users = self.path_folder_keywords / "all_users_list"
+        path_folder_keywords_users.mkdir(exist_ok=True)
+        return path_folder_keywords_users
+
+    @property
     def profiles(self) -> List[str]:
         return self.graph.vs[KeyCol.NAME]
     
@@ -202,6 +208,26 @@ class GraphFollows:
             self._g = self.graph.copy()
             self._g.to_undirected()
         return self._g
+
+    def save_keywords_from_profiles(
+            self,
+            db_tw: DBTwitter,
+            date_i: datetime,
+            date_f: datetime,
+            profiles: List[str]
+        ) -> None:
+        for profile in profiles:
+            user_full_data = db_tw.get_user_full_data(
+                profile = profile,
+                date_i = date_i,
+                date_f = date_f
+            )
+            if user_full_data is not None:
+                texts = user_full_data.get_texts()
+                kw_user = texts2keywords(self.wc, texts)
+                if len(kw_user) > 0:
+                    df_kw_user = KeywordsCluster(kw_user, [profile], None).df_cluster()
+                    df_kw_user.to_csv(self.path_folder_keywords_all_users_list / f"{profile}.csv")
 
     def save_keywords_users(self) -> None:
         for v in self.graph.vs:

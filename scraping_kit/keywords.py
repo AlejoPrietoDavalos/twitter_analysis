@@ -40,6 +40,14 @@ def keywords_update(keywords: T_Keywords, keywords_new: T_Keywords) -> None:
         else:
             keywords[kw] = count
 
+def texts2keywords(wc: WordCloud, texts: List[str]) -> T_Keywords:
+    keywords = {}
+    if len(texts) != 0:
+        for text in texts:
+            keywords_new = wc.process_text(text)
+            keywords_update(keywords, keywords_new)
+    return keywords
+
 def tweets2keywords(wc: WordCloud, tweets: List[TweetUser]) -> T_Keywords:
     keywords = {}
     if len(tweets) != 0:
