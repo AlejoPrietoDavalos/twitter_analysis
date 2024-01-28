@@ -49,11 +49,9 @@ class UserFullData(BaseModel):
     def iter_tweets(self) -> Generator[TweetUser, None, None]:
         return (tweet_user for tweet_user in self.tweets_user)
 
-    def get_texts(self, n_first_texts: int = None) -> List[str]:
-        """ TODO: Considerar otros textos, likes etc..."""
+    def get_texts(self) -> List[str]:
         self.sort_tweets()
-        texts = [tweet_user.text for tweet_user in self.iter_tweets()]
-        return texts if n_first_texts is None else texts[:n_first_texts]
+        return [tweet_user.text for tweet_user in self.iter_tweets()]
 
     @property
     def profile(self) -> str:
