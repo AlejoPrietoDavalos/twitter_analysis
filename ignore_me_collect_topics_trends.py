@@ -11,18 +11,16 @@ from scraping_kit.db.models.topics import get_topic_classes
 from scraping_kit.const import TOPICS_FROM_TRENDS
 
 
-
-
-def task_trends(trend_names: List[str], n_text_context: int, nro_process: int):
+def task_trends(trend_names: List[str], nro_process: int) -> None:
     path_data = Path("data")
     db_tw = DBTwitter(path_data, "scrape_tw")
-    topics_1_to_topics_2, topics_1 = get_topic_classes(db_tw.path_topic_classes)
+    classes_1_to_2, classes_1 = get_topic_classes(db_tw.path_topic_classes)
     print("~"*10)
     print(f"----- Initialize process: {nro_process} -----")
-    db_tw.create_topics_trends(trend_names, topics_1_to_topics_2, topics_1, n_text_context, nro_process)
+    db_tw.create_topics_trends(trend_names, classes_1_to_2, classes_1, nro_process)
 
 
-def main_trends(trend_names: List[str], n_process: int, n_text_context: int) -> None:
+def main_trends(trend_names: List[str], n_process: int) -> None:
     list_trend_names = split_list(trend_names, n_process)
     
     processes = []
@@ -32,7 +30,6 @@ def main_trends(trend_names: List[str], n_process: int, n_text_context: int) -> 
                 target = task_trends,
                 args = (
                     trend_names,
-                    n_text_context,
                     nro_process,
                 )
             )
@@ -45,12 +42,10 @@ def main_trends(trend_names: List[str], n_process: int, n_text_context: int) -> 
 if __name__ == "__main__":
     n_process = int(sys.argv[1])
     process_type = str(sys.argv[2])
-    
-    n_text_context = 8
-    MAX_WORKERS = 20
+    MAX_WORKERS = int(sys.argv[3])
 
     db_tw, bots = load_db_and_bots()
     if process_type == TOPICS_FROM_TRENDS:
         failed_requests = db_tw.collect_searchs_topics(bots, MAX_WORKERS)
         trend_names = db_tw.get_trends_to_create_topics()
-        main_trends(trend_names, n_process, n_text_context)
+        main_trends(trend_names, n_process)
