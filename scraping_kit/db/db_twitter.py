@@ -673,10 +673,10 @@ class DBTwitter(DBMongoBase):
             max_workers: int = 40,
         ) -> UsersFullData:
         assert date_i < date_f, "The end date must be greater."
-
+        
         if with_update:         # Collect the user's latest tweets.
             self.collect_usertimeline(
-                profiles,
+                list_screennames = profiles,
                 bots = bots,
                 max_workers = max_workers,
                 days_to_update = days_to_update_tweets
@@ -693,12 +693,7 @@ class DBTwitter(DBMongoBase):
         )
         
         if with_update:         # Collect the links between the chosen users.
-            self.collect_follows(
-                users,
-                bots,
-                days_to_update_follow_link,
-                max_workers
-            )
+            self.collect_follows(users, bots, days_to_update_follow_link, max_workers)
         else:
             print("Follows were not updated, set `with_update=True`.")
         
