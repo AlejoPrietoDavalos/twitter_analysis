@@ -8,25 +8,21 @@ import pandas as pd
 from scraping_kit.db.models.users import User
 from scraping_kit.db.models.tweet_user import TweetUser
 from scraping_kit.const import TopicsNames
-
+from scraping_kit.utils_topics import get_labels_scores
 
 class TopicUserClasses(BaseModel):
     labels: List[str]
     scores: List[float]
-    n_first_texts: int
 
     @classmethod
     def from_texts(
         cls,
-        texts_joined: str,
+        texts: List[str],
         classifier,
-        classes: List[str],
-        n_first_texts: int
+        classes: List[str]
     ) -> TopicUserClasses:
-        topic_classes = classifier(texts_joined, candidate_labels=classes, multi_label=False)
-        topic_classes["n_first_texts"] = n_first_texts
-        topic_classes.pop("sequence")
-        return TopicUserClasses(**topic_classes)
+        labels, scores = get_labels_scores(texts, classifier, classes)
+        return TopicUserClasses(labels=labels, scores=scores)
 
 
 class TopicUser(BaseModel):

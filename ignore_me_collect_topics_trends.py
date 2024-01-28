@@ -7,7 +7,7 @@ from pathlib import Path
 from scraping_kit.utils import split_list
 from scraping_kit.utils_loader import load_db_and_bots
 from scraping_kit.db.db_twitter import DBTwitter
-from scraping_kit.db.models.topics import get_topic_classes
+from scraping_kit.utils_topics import get_topic_classes
 from scraping_kit.const import TOPICS_FROM_TRENDS
 
 

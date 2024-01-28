@@ -26,7 +26,7 @@ from scraping_kit.db.models.cursor import Cursor
 from scraping_kit.db.models.users import User, UserSuspended, UserList
 from scraping_kit.db.models.trends import Trends
 from scraping_kit.db.models.search import Search, Tweet
-from scraping_kit.db.models.topics import Topic, get_topic_classes
+from scraping_kit.db.models.topics import Topic
 from scraping_kit.db.models.tweet_user import TweetUser
 from scraping_kit.twitter45.params import ArgsSearch, ArgsUserTimeline, ArgsCheckFollow
 
@@ -347,17 +347,24 @@ class DBTwitter(DBMongoBase):
     def create_topics_trends(
             self,
             trend_names: List[str],
-            topics_1_to_topics_2: dict,
-            topics_1: List[str],
-            n_text_context: int = 10,
-            nro_process: int = None) -> None:
+            classes_1_to_2: dict,
+            classes_1: List[str],
+            nro_process: int = None
+        ) -> None:
         len_trends = len(trend_names)
 
         classifier = instance_classifier()
         for i, trend_name in enumerate(trend_names, 1):
             search = Search(**self.coll.search.find_one({"query": trend_name}))
-            topic, texts_joined = Topic.create_from_search(search, classifier, topics_1, n_text_context)
-            topic.calc_topics_2(topics_1_to_topics_2, texts_joined, classifier, n_text_context)
+            texts = search.get_texts()
+            topic = Topic.from_texts(
+                query = search.query,
+                texts = texts,
+                creation_date = search.creation_date,
+                classifier = classifier,
+                classes_1 = classes_1,
+                classes_1_to_2 = classes_1_to_2
+            )
             self.coll.save_topic(topic)
             
             print(" | ".join([
@@ -527,7 +534,7 @@ class DBTwitter(DBMongoBase):
                         response_errors.append((response, creation_date, req_args))
                 else:
                     i += 1
-            print(f"Completed: {len_list_screennames}/{len_list_screennames}")
+            print(f"Completed: {len_list_screennames}/{len_list_screennames} - UsersSuspended={len(list_screennames)-len_list_screennames}")
         return response_errors
     
     def get_user_full_data(self, profile: str, date_i: datetime, date_f: datetime) -> UserFullData | None:
