@@ -3,6 +3,7 @@ from datetime import datetime
 from pathlib import Path
 import subprocess
 import os
+import sys
 
 import pandas as pd
 
@@ -25,6 +26,8 @@ def load_db_and_bots(
         print("Database and bots loaded correctly.")
     except:
         print("Error: You need to run the server. You can check it at http://localhost:27017/")
+        sys.exit()
+        return None, None
 
     if verbose:
         print(f"Collection Names: {db_tw.db.list_collection_names()}")
