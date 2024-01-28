@@ -1,5 +1,6 @@
 from __future__ import annotations
 from typing import List, Generator, Tuple
+from pathlib import Path
 from datetime import datetime
 
 from pydantic import BaseModel
@@ -82,7 +83,7 @@ class UsersFullData(BaseModel):
                 if i != j:
                     yield user_i.profile, user_j.profile
     
-    def df_topics_users(self) -> pd.DataFrame:
+    def df_topics_users(self, path_save: Path) -> pd.DataFrame:
         data = {k: [] for k in ["profile",
                                 TopicsNames.TOPIC_1_A, TopicsNames.TOPIC_1_B,
                                 TopicsNames.TOPIC_2_A, TopicsNames.TOPIC_2_B]}
@@ -103,4 +104,5 @@ class UsersFullData(BaseModel):
             data[TopicsNames.TOPIC_2_A].append(topic_2_a)
             data[TopicsNames.TOPIC_2_B].append(topic_2_b)
         df = pd.DataFrame(data)
+        df.to_csv(path_save)
         return df

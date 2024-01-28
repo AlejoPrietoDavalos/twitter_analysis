@@ -176,6 +176,16 @@ class GraphFollows:
         return f"from_{date_str_from}_to_{date_str_to}"
     
     @property
+    def path_topics_users(self) -> Path:
+        i, flag = 0, True
+        while flag:
+            p = self.path_folder_range / f"topics_user_{i}.csv"
+            if not p.exists():
+                flag = False
+            i += 1
+        return p
+
+    @property
     def path_folder_range(self) -> Path:
         return self.path_folder_out / self.format_folder
     

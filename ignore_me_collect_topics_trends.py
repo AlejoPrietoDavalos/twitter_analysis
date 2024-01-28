@@ -1,4 +1,3 @@
-""" `python3 search_to_topic_subprocess.py n_process`"""
 from typing import List, Any
 import sys
 import multiprocessing
