@@ -620,7 +620,7 @@ class DBTwitter(DBMongoBase):
         follows = FollowList(follows=[])
         for follow_doc in self.coll.follows.find({"is_follow": True}):
             follow = Follow(**follow_doc)
-            if (follow.source in users_profile) or (follow.target in users_profile):
+            if (follow.source in users_profile) and (follow.target in users_profile):
                 follows.append(follow)
         return follows
 
