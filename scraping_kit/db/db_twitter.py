@@ -222,6 +222,7 @@ class DBTwitter(DBMongoBase):
         self.coll = DBTwitterColl(db = self.db)
         
         self.path_data = path_data
+        self.path_input = Path("input")
         self.path_reports_folder = self.path_data / "reports"
         self.path_reports_accumulated_folder = self.path_reports_folder / "trends_accumulated"
         self.path_reports_per_day_folder = self.path_reports_folder / "trends_per_day"
@@ -234,6 +235,7 @@ class DBTwitter(DBMongoBase):
     
     def __init_db(self) -> None:
         self.path_data.mkdir(exist_ok=True)
+        self.path_input.mkdir(exist_ok=True)
         self.path_reports_folder.mkdir(exist_ok=True)
         self.path_reports_accumulated_folder.mkdir(exist_ok=True)
         self.path_reports_per_day_folder.mkdir(exist_ok=True)
