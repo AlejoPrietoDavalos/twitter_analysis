@@ -6,7 +6,7 @@ from scraping_kit import DBTwitter, BotScraper, date_one_day
 from scraping_kit.db.models.raw import RawData
 from scraping_kit.db.models.trends import Trends
 from scraping_kit.utils import format_yyyy_xx
-from twitter_trends.params import ArgsTwitterTrends
+from scraping_kit.twitter_trends.params import ArgsTwitterTrends
 
 
 def process_trends_raw_data(db_tw: DBTwitter, insert_one_result_raw: InsertOneResult) -> InsertOneResult:

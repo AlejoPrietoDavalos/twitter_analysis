@@ -4,7 +4,7 @@ from typing import Type, Literal
 from pydantic import BaseModel
 
 from scraping_kit import ReqArgs, Headers
-from twitter45.headers import HeaderTwitter45
+from scraping_kit.twitter45.headers import HeaderTwitter45
 
 
 class BaseReqArgsTwitter45(ReqArgs):

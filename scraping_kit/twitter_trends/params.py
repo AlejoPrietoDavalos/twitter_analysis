@@ -4,8 +4,8 @@ from typing import Type
 from pydantic import BaseModel, Field
 
 from scraping_kit import ReqArgs
-from twitter_trends.headers import HeaderTwitterTrends
-from twitter_trends.woeid import WOEIDCountry
+from scraping_kit.twitter_trends.headers import HeaderTwitterTrends
+from scraping_kit.twitter_trends.woeid import WOEIDCountry
 
 
 class ParamsTwitterTrends(BaseModel):

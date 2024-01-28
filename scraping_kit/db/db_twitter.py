@@ -28,7 +28,7 @@ from scraping_kit.db.models.trends import Trends
 from scraping_kit.db.models.search import Search, Tweet
 from scraping_kit.db.models.topics import Topic, get_topic_classes
 from scraping_kit.db.models.tweet_user import TweetUser
-from twitter45.params import ArgsSearch, ArgsUserTimeline, ArgsCheckFollow
+from scraping_kit.twitter45.params import ArgsSearch, ArgsUserTimeline, ArgsCheckFollow
 
 def _get_accumulated_name(date_from: datetime, date_to: datetime) -> str:
     accumulated_name = "trends_"
@@ -696,6 +696,6 @@ class DBTwitter(DBMongoBase):
         return users
 
     def collect_trends_today(self, bots: BotList, woeid: str = None, max_workers=10) -> None:
-        from twitter_trends.functional import requests_and_process
+        from scraping_kit.twitter_trends.functional import requests_and_process
         requests_and_process(self, bots.random_bot_2(), woeid)   # FIXME: Esta función tendría que ser un método.
         failed_requests = self.collect_searchs_topics(bots, max_workers)
