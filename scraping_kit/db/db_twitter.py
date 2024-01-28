@@ -704,7 +704,8 @@ class DBTwitter(DBMongoBase):
         
         return users
 
-    def collect_trends_today(self, bots: BotList, woeid: str = None, max_workers=10) -> None:
+    def collect_trends_today(self, bots: BotList, woeid: str = None, max_workers=10) -> InsertOneResult | None:
         from scraping_kit.twitter_trends.functional import requests_and_process
-        requests_and_process(self, bots.random_bot_2(), woeid)   # FIXME: Esta función tendría que ser un método.
+        is_downloaded = requests_and_process(self, bots.random_bot_2(), woeid)
         failed_requests = self.collect_searchs_topics(bots, max_workers)
+        return is_downloaded
