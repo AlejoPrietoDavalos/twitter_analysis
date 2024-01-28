@@ -1,6 +1,6 @@
 from __future__ import annotations
 from typing import Type, Dict, List, Tuple, Generator, Optional, Iterable
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from requests import Response, JSONDecodeError
 import random
@@ -81,7 +81,7 @@ def wrap_get_user_timeline(
         return get_user_timeline(bot, req_args)
     else:
         cursor = Cursor(**cursor_doc)
-        dt = get_datetime_now() - cursor.creation_date
+        dt = get_datetime_now() - cursor.creation_date.replace(tzinfo=timezone.utc)
         if abs(dt.days) >= days_update:
             return get_user_timeline(bot, req_args)
         else:
@@ -113,7 +113,7 @@ def wrap_check_follow(
         is_download = True
     else:
         follow = Follow(**follow_doc)
-        dt = get_datetime_now() - follow.creation_date
+        dt = get_datetime_now() - follow.creation_date.replace(tzinfo=timezone.utc)
         if abs(dt.days) > days_to_update:
             response, creation_date, req_args = get_check_follow(bot, req_args)
             db_tw.process_check_follow(response, creation_date, req_args)
