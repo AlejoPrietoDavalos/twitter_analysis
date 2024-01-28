@@ -13,25 +13,40 @@ from scraping_kit.bot_scraper import BotList
 def load_db_and_bots(
         path_data: Path = None,
         db_name: str = "scrape_tw",
-        verbose=True
+        verbose = False
     ) -> Tuple[DBTwitter, BotList]:
     if path_data is None:
         path_data = Path("data")
-    db_tw = DBTwitter(path_data, db_name)
-    bots = db_tw.load_bots()
+
+    try:
+        db_tw = DBTwitter(path_data, db_name)
+        db_tw.db["test"].find_one()
+        bots = db_tw.load_bots()
+        print("Database and bots loaded correctly.")
+    except:
+        print("Error: You need to run the server. You can check it at http://localhost:27017/")
+
     if verbose:
         print(f"Collection Names: {db_tw.db.list_collection_names()}")
         print(f"Bots: {bots}")
     return db_tw, bots
 
 
-def load_profiles(path_data: Path = None) -> List[str]:
-    """ TODO: Ask Vera how she wants to import the users to study."""
-    if path_data is None:
-        path_data = Path("data")
-    df = pd.read_excel(path_data / "twitter_accounts.xlsx")
-    df = df.sort_values("followersCount", ascending=False)
-    profiles = df["screenName"].to_list()
+def load_profiles(file_name: str, column_name: str = "screenName", path_input: Path = None) -> List[str]:
+    if path_input is None:
+        path_input = Path("input")
+    try:
+        df = pd.read_excel(path_input / file_name)
+    except:
+        files_into_input = ' | '.join([p.name for p in path_input.iterdir()])
+        print(f"Incorrect file name '{file_name}'. There are ~~> '{files_into_input}'.")
+        return None
+    try:
+        profiles = df[column_name].to_list()
+    except:
+        print(f"Incorrect name column, searching for '{column_name}', writing error.")
+        return None
+    print(f"Name of users loaded correctly. total={len(profiles)}")
     return profiles
 
 def save_db(db_name: str = "scrape_tw", folder_backup: str = "data/backup_db") -> None:
