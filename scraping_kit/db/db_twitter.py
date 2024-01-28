@@ -638,11 +638,8 @@ class DBTwitter(DBMongoBase):
             num_iters = n * (n - 1)
             for i, future in enumerate(as_completed(iter_futures), 1):
                 is_download = future.result()
-                txt_iter = f"{i}/{num_iters}"
-                if is_download:
-                    txt_iter += " | Download sucessfull."
-                else:
-                    txt_iter += " | Existing link - Skip."
+                extra_text = "Download sucessfull." if is_download else "Existing link - Skip."
+                txt_iter = f"{i}/{num_iters} | {extra_text}"
                 print(txt_iter)
 
     def get_topic_user(self, user: User | UserFullData) -> TopicUser:
