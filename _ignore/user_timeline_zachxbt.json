@@ -1,0 +1,509 @@
+{
+    "pinned": {
+        "tweet_id": "1694326221511794706",
+        "bookmarks": 562,
+        "created_at": "Wed Aug 23 12:30:24 +0000 2023",
+        "favorites": 3654,
+        "text": "Over the past four months $13.3M+ has been stolen as a result of 54 SIM swaps targeting people in the crypto space.\n\nWhen an account is compromised scammers attempt to create a sense of urgency with a fake claim to drain your assets. \n\nNever use SMS 2FA and instead use an… https://t.co/Fu1C3syQJE",
+        "lang": "en",
+        "views": "65108905",
+        "quotes": 231,
+        "replies": 487,
+        "retweets": 2062,
+        "conversation_id": "1694326221511794706",
+        "media": {
+            "photo": [
+                {
+                    "media_url_https": "https://pbs.twimg.com/media/F4N0t25WYAA4ca7.jpg"
+                },
+                {
+                    "media_url_https": "https://pbs.twimg.com/media/F4N0t27WkAAp0yW.jpg"
+                },
+                {
+                    "media_url_https": "https://pbs.twimg.com/media/F4N0t24WwAAJHvA.jpg"
+                }
+            ]
+        },
+        "author": {
+            "rest_id": "3012852462",
+            "name": "ZachXBT",
+            "screen_name": "zachxbt",
+            "avatar": "https://pbs.twimg.com/profile_images/1723400434176475136/-eqGNLGC_normal.jpg",
+            "blue_verified": true
+        }
+    },
+    "timeline": [
+        {
+            "tweet_id": "1735650964026089877",
+            "bookmarks": 176,
+            "created_at": "Fri Dec 15 13:20:11 +0000 2023",
+            "favorites": 5660,
+            "text": "Hello @MarioNawfal why is my name appearing in a deck to shill your marketing services when I have never done paid promotions or spoken with your IBC team?\n\nUnless you count my services as the times I called you out for spreading misinformation during the FTX incident. https://t.co/yMTVeK36PW",
+            "lang": "en",
+            "views": "875327",
+            "quotes": 114,
+            "replies": 813,
+            "retweets": 667,
+            "conversation_id": "1735650964026089877",
+            "media": {
+                "photo": [
+                    {
+                        "media_url_https": "https://pbs.twimg.com/media/GBZFWQnWIAAl76W.jpg"
+                    },
+                    {
+                        "media_url_https": "https://pbs.twimg.com/media/GBZFWQlWAAACk1-.jpg"
+                    },
+                    {
+                        "media_url_https": "https://pbs.twimg.com/media/GBZFWQkXYAEpOM8.jpg"
+                    }
+                ]
+            },
+            "author": {
+                "rest_id": "3012852462",
+                "name": "ZachXBT",
+                "screen_name": "zachxbt",
+                "avatar": "https://pbs.twimg.com/profile_images/1723400434176475136/-eqGNLGC_normal.jpg",
+                "blue_verified": true
+            }
+        },
+        {
+            "tweet_id": "1735326304914878538",
+            "bookmarks": 0,
+            "created_at": "Thu Dec 14 15:50:06 +0000 2023",
+            "favorites": 0,
+            "text": "RT @Ledger: FINAL TIMELINE AND UPDATE TO CUSTOMERS:\n\n4:49pm CET:\n\nLedger Connect Kit genuine version 1.1.8 is being propagated now automati…",
+            "lang": "en",
+            "views": "6",
+            "quotes": 0,
+            "replies": 0,
+            "retweets": 2375,
+            "conversation_id": "1735326304914878538",
+            "media": [],
+            "author": {
+                "rest_id": "3012852462",
+                "name": "ZachXBT",
+                "screen_name": "zachxbt",
+                "avatar": "https://pbs.twimg.com/profile_images/1723400434176475136/-eqGNLGC_normal.jpg",
+                "blue_verified": true
+            },
+            "retweeted": {
+                "id": "1735326240658100414"
+            },
+            "retweeted_tweet": {
+                "tweet_id": "1735326240658100414",
+                "bookmarks": 806,
+                "created_at": "Thu Dec 14 15:49:51 +0000 2023",
+                "favorites": 6822,
+                "text": "FINAL TIMELINE AND UPDATE TO CUSTOMERS:\n\n4:49pm CET:\n\nLedger Connect Kit genuine version 1.1.8 is being propagated now automatically. We recommend waiting 24 hours until using the Ledger Connect Kit again.\n\nThe investigation continues, here is the timeline of what we know about…",
+                "lang": "en",
+                "quotes": 657,
+                "replies": 1285,
+                "retweets": 2375,
+                "conversation_id": "1735326240658100414",
+                "author": {
+                    "rest_id": "2652239532",
+                    "name": "Ledger",
+                    "screen_name": "Ledger",
+                    "avatar": "https://pbs.twimg.com/profile_images/1522608646043181060/QQRjVYhi_normal.jpg",
+                    "blue_verified": false
+                },
+                "media": []
+            }
+        },
+        {
+            "tweet_id": "1735025990819049968",
+            "bookmarks": 59,
+            "created_at": "Wed Dec 13 19:56:46 +0000 2023",
+            "favorites": 707,
+            "text": "On-chain you can identify the Peapods exploiter is likely axxe.eth or @0xaxxe \nby using timing analysis.\n\n-2:55 pm UTC axxe sends 1000 USDC to FixedFloat \n\n0x7a49f6dc4084a6088406e56e27a2c85e7fd05f5b3adb3a58b5065704bbf2796e\n\n-3:12 pm UTC $peas exploiter receives 0.44 ETH… https://t.co/xO8zaCGHPY",
+            "lang": "en",
+            "views": "302799",
+            "quotes": 12,
+            "replies": 47,
+            "retweets": 98,
+            "conversation_id": "1735025990819049968",
+            "media": {
+                "photo": [
+                    {
+                        "media_url_https": "https://pbs.twimg.com/media/GBQM8N4WUAAJCaT.jpg"
+                    }
+                ]
+            },
+            "quoted": {
+                "tweet_id": "1735005189596237945",
+                "bookmarks": 5,
+                "created_at": "Wed Dec 13 18:34:06 +0000 2023",
+                "favorites": 80,
+                "text": "Code is in expedited audit right now and 90% funds have been returned as was negotiated with the whitehat: https://t.co/frFqDObUb7\n\nTime to run it back. $PEAS",
+                "lang": "en",
+                "views": "272171",
+                "quotes": 5,
+                "replies": 18,
+                "retweets": 16,
+                "conversation_id": "1735005189596237945",
+                "author": {
+                    "rest_id": "3012852462",
+                    "name": "ZachXBT",
+                    "screen_name": "zachxbt",
+                    "avatar": "https://pbs.twimg.com/profile_images/1723400434176475136/-eqGNLGC_normal.jpg",
+                    "blue_verified": true
+                },
+                "media": []
+            }
+        },
+        {
+            "tweet_id": "1735028596979225036",
+            "bookmarks": 1,
+            "created_at": "Wed Dec 13 20:07:07 +0000 2023",
+            "favorites": 145,
+            "text": "Update: Axxe confirmed it was him",
+            "lang": "en",
+            "views": "52054",
+            "quotes": 0,
+            "replies": 6,
+            "retweets": 4,
+            "conversation_id": "1735025990819049968",
+            "media": [],
+            "quoted": {
+                "tweet_id": "1735027744436547702",
+                "bookmarks": 9,
+                "created_at": "Wed Dec 13 20:03:44 +0000 2023",
+                "favorites": 62,
+                "text": "After a reentrancy vulnerability, I was able to get the funds back from the pool and send 90% back to the @PeapodsFinance team. After discussing with them, a fix seems audited now. Post mortem soon.",
+                "lang": "en",
+                "views": "95851",
+                "quotes": 5,
+                "replies": 13,
+                "retweets": 7,
+                "conversation_id": "1735027744436547702",
+                "author": {
+                    "rest_id": "3012852462",
+                    "name": "ZachXBT",
+                    "screen_name": "zachxbt",
+                    "avatar": "https://pbs.twimg.com/profile_images/1723400434176475136/-eqGNLGC_normal.jpg",
+                    "blue_verified": true
+                },
+                "media": []
+            }
+        },
+        {
+            "tweet_id": "1732790502624510416",
+            "bookmarks": 10,
+            "created_at": "Thu Dec 07 15:53:44 +0000 2023",
+            "favorites": 380,
+            "text": "5/ The funds also go to various deposit addresses at Kraken, Bitpay, and Coinbase. \n\n0x34e158883efc81c5d92fde785fba48db738711ee\n0x3a43ac6baf1fa6bdbc966dbdfe26cf545131898e\n0x85cb90db50608a950858e023509d6a7fa289e212\n0xbfe6def287c402114d39d0156e17fda79efff4d2",
+            "lang": "en",
+            "views": "170309",
+            "quotes": 0,
+            "replies": 14,
+            "retweets": 9,
+            "conversation_id": "1732790450350703052",
+            "media": []
+        },
+        {
+            "tweet_id": "1732790522815607178",
+            "bookmarks": 8,
+            "created_at": "Thu Dec 07 15:53:48 +0000 2023",
+            "favorites": 361,
+            "text": "8/ In March 2023 the Uranium hacker deposited 52 X 100 ETH to Tornado &amp; this person received 52 X 100 ETH\n\nMarch 6 &amp; 14: Uranium Hacker deposits 52 X 100 ETH to Tornado\n\nMarch 7 &amp; 15: Our person withdrew huge volumes from Tornado\n\nAfter they finished the Uranium hacker deposits… https://t.co/4oazEIUlPM",
+            "lang": "en",
+            "views": "156530",
+            "quotes": 2,
+            "replies": 19,
+            "retweets": 12,
+            "conversation_id": "1732790450350703052",
+            "media": {
+                "photo": [
+                    {
+                        "media_url_https": "https://pbs.twimg.com/media/GAwbzACWYAAlcoB.jpg"
+                    }
+                ]
+            }
+        },
+        {
+            "tweet_id": "1732790526842171411",
+            "bookmarks": 64,
+            "created_at": "Thu Dec 07 15:53:49 +0000 2023",
+            "favorites": 931,
+            "text": "9/ While my analysis could be incorrect I find it very suspicious that this person:\n\n-spends 8 figures on MTG \n-is overpaying for MTG \n-shields identity through broker who likely does not know what Tornado is\n-receives $13.2M from Tornado post OFAC while in the US\n-uses WETH…",
+            "lang": "en",
+            "views": "181779",
+            "quotes": 3,
+            "replies": 205,
+            "retweets": 33,
+            "conversation_id": "1732790450350703052",
+            "media": []
+        },
+        {
+            "tweet_id": "1732790450350703052",
+            "bookmarks": 1527,
+            "created_at": "Thu Dec 07 15:53:31 +0000 2023",
+            "favorites": 6757,
+            "text": "1/ Throughout this year I have been monitoring someone who has withdrawn 11,200+ ETH ($25M) from Tornado Cash and spent the majority of it on Magic The Gathering (MTG) trading cards. \n\nHere’s my analysis of where the funds went and what the potential source of funds could be.",
+            "lang": "en",
+            "views": "1950753",
+            "quotes": 242,
+            "replies": 426,
+            "retweets": 907,
+            "conversation_id": "1732790450350703052",
+            "media": []
+        },
+        {
+            "tweet_id": "1732790497964380441",
+            "bookmarks": 24,
+            "created_at": "Thu Dec 07 15:53:43 +0000 2023",
+            "favorites": 475,
+            "text": "4/ After contacting MTG sellers were where things became interesting. \n\n-buyer was spending millions on starter decks, alpha sets, sealed boxes\n\n-buyer seemed to be overpaying by 5-10%\n\n-buyer sent crypto up front and broker met up IRL with seller\n\n-buyer was unknown to seller… https://t.co/ZfgO1SqHeY",
+            "lang": "en",
+            "views": "195797",
+            "quotes": 4,
+            "replies": 27,
+            "retweets": 14,
+            "conversation_id": "1732790450350703052",
+            "media": {
+                "photo": [
+                    {
+                        "media_url_https": "https://pbs.twimg.com/media/GAwbxlaX0AInQC8.jpg"
+                    }
+                ]
+            }
+        },
+        {
+            "tweet_id": "1732790491748413865",
+            "bookmarks": 19,
+            "created_at": "Thu Dec 07 15:53:41 +0000 2023",
+            "favorites": 452,
+            "text": "3/ After USDC was sent to a MTG US based broker that accepts crypto\n\nHow did I find the broker used?\n\n1) Instagram username was same as on OpenSea\n\n2) Directly contacted a few MTG sellers the broker interacted w/ on-chain\n\nBroker address\n0x80462101b56cb4125c645ff299d3e20c1d908c02 https://t.co/4DuybYA9K8",
+            "lang": "en",
+            "views": "151192",
+            "quotes": 3,
+            "replies": 12,
+            "retweets": 13,
+            "conversation_id": "1732790450350703052",
+            "media": {
+                "photo": [
+                    {
+                        "media_url_https": "https://pbs.twimg.com/media/GAwbxLaXwAAe2Wb.jpg"
+                    },
+                    {
+                        "media_url_https": "https://pbs.twimg.com/media/GAwbxLdWUAAh1zv.jpg"
+                    }
+                ]
+            }
+        },
+        {
+            "tweet_id": "1732790483988942861",
+            "bookmarks": 167,
+            "created_at": "Thu Dec 07 15:53:39 +0000 2023",
+            "favorites": 604,
+            "text": "2/ This person has withdrawn 110 X 100 ETH from Tornado to 11 addresses. \n\nAfter they would:\n1) Wrap the ETH\n2) Transfer WETH to new address\n3) Unwrap the WETH\n4) Transfer USDC to MTG broker\n\n(this is a strategy used to trick KYT at exchanges) https://t.co/p8zMOWTiVR",
+            "lang": "en",
+            "views": "137749",
+            "quotes": 5,
+            "replies": 17,
+            "retweets": 26,
+            "conversation_id": "1732790450350703052",
+            "media": {
+                "photo": [
+                    {
+                        "media_url_https": "https://pbs.twimg.com/media/GAwbwtkWYAA5BJg.jpg"
+                    }
+                ]
+            }
+        },
+        {
+            "tweet_id": "1731745308449575015",
+            "bookmarks": 80,
+            "created_at": "Mon Dec 04 18:40:30 +0000 2023",
+            "favorites": 1500,
+            "text": "Community Alert: @pokerbrat2019 solicited at least $1.2M from 11 individuals earlier this year for various MEV bots (independent from Rampage) that he claimed would soon be operational.\n\nAfter initially agreeing to return funds due to countless launch delays PokerBrat has made… https://t.co/qzDdIriizf",
+            "lang": "en",
+            "views": "313328",
+            "quotes": 43,
+            "replies": 159,
+            "retweets": 259,
+            "conversation_id": "1731745308449575015",
+            "media": {
+                "photo": [
+                    {
+                        "media_url_https": "https://pbs.twimg.com/media/GAhlLdlWkAEaMG7.jpg"
+                    },
+                    {
+                        "media_url_https": "https://pbs.twimg.com/media/GAhlLdpWYAAaaQx.jpg"
+                    },
+                    {
+                        "media_url_https": "https://pbs.twimg.com/media/GAhlLdoWoAAKxVO.jpg"
+                    }
+                ]
+            },
+            "author": {
+                "rest_id": "3012852462",
+                "name": "ZachXBT",
+                "screen_name": "zachxbt",
+                "avatar": "https://pbs.twimg.com/profile_images/1723400434176475136/-eqGNLGC_normal.jpg",
+                "blue_verified": true
+            }
+        },
+        {
+            "tweet_id": "1729376109261680842",
+            "bookmarks": 70,
+            "created_at": "Tue Nov 28 05:46:09 +0000 2023",
+            "favorites": 2231,
+            "text": "It looks like ben.eth is allowing wallet drainers to become affiliated with his business verified account. https://t.co/MRNnyt6b4Q",
+            "lang": "en",
+            "views": "530415",
+            "quotes": 51,
+            "replies": 289,
+            "retweets": 343,
+            "conversation_id": "1729376109261680842",
+            "media": {
+                "photo": [
+                    {
+                        "media_url_https": "https://pbs.twimg.com/media/F__6Z-pWUAAEGIN.jpg"
+                    },
+                    {
+                        "media_url_https": "https://pbs.twimg.com/media/F__6Z-qWYAA729h.jpg"
+                    },
+                    {
+                        "media_url_https": "https://pbs.twimg.com/media/F__6Z-rXgAEx05U.jpg"
+                    }
+                ]
+            }
+        },
+        {
+            "tweet_id": "1729379983888376188",
+            "bookmarks": 12,
+            "created_at": "Tue Nov 28 06:01:33 +0000 2023",
+            "favorites": 556,
+            "text": "I’m sure this is not surprising to most of us by now but new people keep sending him funds for new grifts. \n\n&gt;Retweeted Steve Aoki when he was SIM swapped \n\n&gt;Posted contract to honeypot on his website  \n\n&gt;Retweeted a phishing scammer three times https://t.co/Pbr67b6TUe",
+            "lang": "en",
+            "views": "105655",
+            "quotes": 4,
+            "replies": 39,
+            "retweets": 41,
+            "conversation_id": "1729376109261680842",
+            "media": {
+                "photo": [
+                    {
+                        "media_url_https": "https://pbs.twimg.com/media/F__97d0WsAEc0mZ.jpg"
+                    },
+                    {
+                        "media_url_https": "https://pbs.twimg.com/media/F__97d5XkAAySK0.jpg"
+                    },
+                    {
+                        "media_url_https": "https://pbs.twimg.com/media/F__97d0W8AAUHAW.jpg"
+                    }
+                ]
+            }
+        },
+        {
+            "tweet_id": "1731396957640286584",
+            "bookmarks": 11,
+            "created_at": "Sun Dec 03 19:36:17 +0000 2023",
+            "favorites": 487,
+            "text": "Now ben.eth has managed to allow his account to get hacked twice in 2023.\n\n-June 2023 account compromised \n\n-Now today he was SIM swapped \n\nWhen do people learn? https://t.co/PPCvXDltcP",
+            "lang": "en",
+            "views": "86512",
+            "quotes": 24,
+            "replies": 116,
+            "retweets": 60,
+            "conversation_id": "1729376109261680842",
+            "media": {
+                "photo": [
+                    {
+                        "media_url_https": "https://pbs.twimg.com/media/GAcoW2NXwAAK1Jx.jpg"
+                    },
+                    {
+                        "media_url_https": "https://pbs.twimg.com/media/GAcoW2PX0AAKAb5.jpg"
+                    }
+                ]
+            }
+        },
+        {
+            "tweet_id": "1730310284248555940",
+            "bookmarks": 142,
+            "created_at": "Thu Nov 30 19:38:14 +0000 2023",
+            "favorites": 2520,
+            "text": "It looks like the SIM swapper who impersonated Apple Support to steal $386K worth of crypto and NFTs (BAYC 9012) from @Mr312 last year was just sentenced to 8 years in prison + ordered to pay $1.2M in restitution.\n\nHow do we know it’s his scammer? \n\nIn the DOJ press release they… https://t.co/qBrWBpROVg",
+            "lang": "en",
+            "views": "375485",
+            "quotes": 55,
+            "replies": 252,
+            "retweets": 332,
+            "conversation_id": "1730310284248555940",
+            "media": {
+                "photo": [
+                    {
+                        "media_url_https": "https://pbs.twimg.com/media/GANMBngWwAAiYoM.jpg"
+                    },
+                    {
+                        "media_url_https": "https://pbs.twimg.com/media/GANMBndWsAAjgaT.jpg"
+                    },
+                    {
+                        "media_url_https": "https://pbs.twimg.com/media/GANMBnhWgAENNOa.jpg"
+                    }
+                ]
+            },
+            "author": {
+                "rest_id": "3012852462",
+                "name": "ZachXBT",
+                "screen_name": "zachxbt",
+                "avatar": "https://pbs.twimg.com/profile_images/1723400434176475136/-eqGNLGC_normal.jpg",
+                "blue_verified": true
+            }
+        },
+        {
+            "tweet_id": "1729195515462500831",
+            "bookmarks": 145,
+            "created_at": "Mon Nov 27 17:48:32 +0000 2023",
+            "favorites": 1671,
+            "text": "I hope Optimism badgeholders in RPGF round 3 are mindful of what constitutes a public goods when voting. \n\nIt’s slightly concerning to see some of the projects at the top of the ballots who have received significant VC funding or are closed source systems.\n\nComes across less as… https://t.co/wyrvroNcD5",
+            "lang": "en",
+            "views": "429163",
+            "quotes": 49,
+            "replies": 143,
+            "retweets": 299,
+            "conversation_id": "1729195515462500831",
+            "media": {
+                "photo": [
+                    {
+                        "media_url_https": "https://pbs.twimg.com/media/F_9WJ-5WQAEaJxa.jpg"
+                    },
+                    {
+                        "media_url_https": "https://pbs.twimg.com/media/F_9WJ-2X0AA22zF.jpg"
+                    }
+                ]
+            }
+        },
+        {
+            "tweet_id": "1729290605711245573",
+            "bookmarks": 114,
+            "created_at": "Tue Nov 28 00:06:23 +0000 2023",
+            "favorites": 562,
+            "text": "I created a list of well capitalized VC projects who are currently in the top 100 for voting. Feel free to add more below. \n\n-Gelato (Raised $11M + has token)\n-Rainbow (Raised $18M+)\n-ImmunFi (Raised $24M+)\n-Mirror (Raised $10M+)\n-Zora (Raised $50M+\n-Synthetix ( 9 fig treasury +…",
+            "lang": "en",
+            "views": "113683",
+            "quotes": 23,
+            "replies": 34,
+            "retweets": 82,
+            "conversation_id": "1729195515462500831",
+            "media": []
+        }
+    ],
+    "next_cursor": "DAABCgABGBjiBW2__-4KAAIX_6ykytbBBQgAAwAAAAIAAA",
+    "user": {
+        "status": "active",
+        "profile": "zachxbt",
+        "rest_id": "3012852462",
+        "blue_verified": true,
+        "avatar": "https://pbs.twimg.com/profile_images/1723400434176475136/-eqGNLGC_normal.jpg",
+        "header_image": "https://pbs.twimg.com/profile_banners/3012852462/1700021307",
+        "desc": "Rug pull survivor turned 2D detective",
+        "name": "ZachXBT",
+        "protected": null,
+        "location": "donations: zachxbt.eth",
+        "friends": 1587,
+        "sub_count": 469136,
+        "id": "3012852462"
+    }
+}
