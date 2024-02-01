@@ -1,5 +1,24 @@
-### Quickstart
+# Scripts
+- `0_run_server.ipynb`: Run MongoDB local server.
+- `0_backup_db.ipynb`: Save backup on MongoDB into `data/`.
+- `1_collect_trends_today.ipynb`: Collect Trends from today.
+- `2_collect_topics_trends.ipynb`: Collect Topics from Trends into DB using AI.
+- `3_collect_topics_users.ipynb`: Collect Topics from Users selected into DB using AI.
+- `A_collect_graph_users.ipynb`: Collect all information and update from Users, and Links Betweenness, keywords, and build Graph of Followers and Following.
+- `B_trends_accumulated.ipynb`: Search Trends into DB accumulated in date range.
+- `C_trends_per_day.ipynb`: Search Trends into DB in a single day.
 
+# Fancy Plots
+- Example for a `list of 1000 users` of which `40 were chosen` due to the `greatest number of followers`.
+![graph_followers](fancy_plots/graph_followers.png)
+<img src="fancy_plots/user_graph_explanation_page_1.jpg" width="70%">
+<img src="fancy_plots/user_graph_explanation_page_2.jpg" width="70%">
+<img src="fancy_plots/user_graph_explanation_page_3.jpg" width="70%">
+<img src="fancy_plots/user_graph_explanation_page_4.jpg" width="70%">
+
+
+
+# Quickstart
 ##### Setup Python Enviroment
 ```bash
 cd path/to/project
@@ -28,6 +47,15 @@ pip install -r requirements.txt
 ```
 
 ##### Install MongoDB
-- https://www.mongodb.com/docs/manual/tutorial/install-mongodb-on-os-x/
+- Install MongoDB.
+```bash
+mkdir -p /data/db
+```
+
+- Can start MongoDB with:
+```bash
+mongod --dbpath /data/db
+# Or execute `0_run_server.ipynb`.
+```
 
 
