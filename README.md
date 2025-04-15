@@ -1,3 +1,5 @@
+![graph_followers](fancy_plots/graph_followers.png)
+
 # Scripts
 - `0_run_server.ipynb`: Run MongoDB local server.
 - `0_backup_db.ipynb`: Save backup on MongoDB into `data/`.
